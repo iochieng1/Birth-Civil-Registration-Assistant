@@ -17,6 +17,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from . import __version__, appointments, checklist, db, notifications, reference, ussd
+from .death_rules import Circumstance, DeathCase, DeathPlace, DeathService, build_death_plan
 from .i18n import normalise_lang, t
 from .phone import InvalidPhone, normalise
 from .rules import Applicant, BirthPlace, Case, Service, build_plan
@@ -36,12 +37,22 @@ class ChecklistRequest(BaseModel):
     have: list[str] | None = Field(default=None, description="Document ids the applicant already has")
 
 
+class DeathChecklistRequest(BaseModel):
+    service: DeathService = DeathService.REGISTER
+    date_of_death: date
+    place_of_death: DeathPlace = DeathPlace.FACILITY
+    circumstance: Circumstance = Circumstance.NATURAL
+    deceased_had_id: bool = True
+    lang: Lang = "en"
+    have: list[str] | None = Field(default=None, description="Document ids the informant already has")
+
+
 class BookingRequest(BaseModel):
     office_id: int
     day: date
     slot: str
     phone: str
-    service: Service = Service.REGISTER
+    service: Service | DeathService = Service.REGISTER
     lang: Lang = "en"
 
 
@@ -54,6 +65,15 @@ class NotificationRequest(BaseModel):
     date_of_birth: date
     birth_place: BirthPlace
     parent_phone: str
+    language: Lang = "en"
+    captured_by: str | None = None
+
+
+class DeathNotificationRequest(BaseModel):
+    county_code: str
+    date_of_death: date
+    place_of_death: DeathPlace
+    informant_phone: str
     language: Lang = "en"
     captured_by: str | None = None
 
@@ -74,6 +94,17 @@ def _phone(raw: str) -> str:
         return normalise(raw)
     except InvalidPhone as exc:
         raise HTTPException(422, str(exc)) from exc
+
+
+def _checklist_response(plan, have: list[str] | None, lang: str) -> dict:
+    result = {"checklist": asdict(checklist.render(plan, lang))}
+    if have is not None:
+        result["readiness"] = asdict(checklist.assess(plan, set(have), lang))
+    return result
+
+
+def _notification_response(n: notifications.Notification) -> dict:
+    return {"reference": n.reference, "event": n.event, "deadline": n.deadline, "county_code": n.county_code}
 
 
 def create_app(
@@ -143,11 +174,22 @@ def create_app(
             )
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
-        plan = build_plan(case)
-        result = {"checklist": asdict(checklist.render(plan, req.lang))}
-        if req.have is not None:
-            result["readiness"] = asdict(checklist.assess(plan, set(req.have), req.lang))
-        return result
+        return _checklist_response(build_plan(case), req.have, req.lang)
+
+    @app.post("/checklist/death")
+    def make_death_checklist(req: DeathChecklistRequest):
+        try:
+            case = DeathCase(
+                req.service,
+                req.date_of_death,
+                place_of_death=req.place_of_death,
+                circumstance=req.circumstance,
+                deceased_had_id=req.deceased_had_id,
+                today=clock(),
+            )
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return _checklist_response(build_death_plan(case), req.have, req.lang)
 
     @app.get("/offices/{office_id}/slots")
     def office_slots(office_id: int, day: date, conn: Conn):
@@ -203,7 +245,25 @@ def create_app(
             )
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
-        return {"reference": n.reference, "deadline": n.deadline, "county_code": n.county_code}
+        return _notification_response(n)
+
+    @app.post("/notifications/deaths", status_code=201, dependencies=staff)
+    def create_death_notification(req: DeathNotificationRequest, conn: Conn):
+        try:
+            n = notifications.record_death(
+                conn,
+                req.county_code,
+                req.date_of_death,
+                req.place_of_death,
+                req.informant_phone,
+                req.language,
+                req.captured_by,
+                gateway=sms,
+                today=clock(),
+            )
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return _notification_response(n)
 
     @app.post("/notifications/{ref}/registered", dependencies=staff)
     def notification_registered(ref: str, conn: Conn, req: RegisteredRequest | None = None):
@@ -217,10 +277,10 @@ def create_app(
         return {"sent": notifications.send_reminders(conn, sms, today=clock())}
 
     @app.get("/reports/gaps", dependencies=staff)
-    def gaps(conn: Conn):
+    def gaps(conn: Conn, event: Literal["birth", "death"] = "birth"):
         return [
             {**asdict(g), "registration_rate": g.registration_rate}
-            for g in notifications.gap_report(conn, today=clock())
+            for g in notifications.gap_report(conn, today=clock(), event=event)
         ]
 
     # USSD callback (Africa's Talking posts application/x-www-form-urlencoded)

@@ -143,3 +143,35 @@ def test_ussd_callback(client):
 
     form["phoneNumber"] = "bad"
     assert client.post("/ussd", data=form).text.startswith("END Invalid")
+
+
+def test_death_checklist(client):
+    body = {"date_of_death": "2026-10-20", "place_of_death": "home", "circumstance": "unnatural", "have": ["death_chief_letter"]}
+    data = client.post("/checklist/death", json=body).json()
+    assert data["checklist"]["category"] == "death_timely"
+    assert data["checklist"]["deadline"] == "2027-04-20"
+    assert "police_death_report" in data["readiness"]["missing"]
+
+    replacement = client.post("/checklist/death", json={"service": "death_replacement", "date_of_death": "2010-01-01", "lang": "sw"})
+    assert replacement.json()["checklist"]["category"] == "death_replacement"
+    assert client.post("/checklist/death", json={"date_of_death": "2027-01-01"}).status_code == 422
+
+
+def test_death_notification_and_report(client, gateway):
+    body = {"county_code": "23", "date_of_death": "2026-10-01", "place_of_death": "home", "informant_phone": "0712345678"}
+    resp = client.post("/notifications/deaths", json=body, headers=STAFF)
+    assert resp.status_code == 201
+    assert resp.json()["reference"].startswith("DN-")
+    assert resp.json()["event"] == "death"
+    assert "condolences" in gateway.outbox[-1][1]
+
+    assert client.get("/reports/gaps", headers=STAFF).json() == []
+    deaths = client.get("/reports/gaps", params={"event": "death"}, headers=STAFF).json()
+    assert deaths[0]["county_name"] == "Turkana"
+    assert client.get("/reports/gaps", params={"event": "marriage"}, headers=STAFF).status_code == 422
+    assert client.post("/notifications/deaths", json=body).status_code == 401
+
+
+def test_booking_accepts_death_service(client):
+    body = {"office_id": 47, "day": "2026-10-26", "slot": "09:00", "phone": "0712345678", "service": "death"}
+    assert client.post("/appointments", json=body).json()["service"] == "death"
