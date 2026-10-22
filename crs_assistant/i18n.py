@@ -130,6 +130,87 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "Appointment {reference}: {office}, {day} at {slot}. Bring the documents on your checklist.",
         "sw": "Miadi {reference}: {office}, {day} saa {slot}. Beba nyaraka zilizo kwenye orodha yako.",
     },
+    # USSD screens (keep each under ~160 characters)
+    "ussd.main": {
+        "en": "Birth Registration Assistant\n1. What documents do I need?\n2. Check registration deadline\n3. Book office appointment\n4. Check my appointment",
+        "sw": "Msaidizi wa Usajili wa Kuzaliwa\n1. Nahitaji nyaraka gani?\n2. Angalia muda wa mwisho\n3. Weka miadi ofisini\n4. Angalia miadi yangu",
+    },
+    "ussd.service": {
+        "en": "Which service?\n1. Register a birth\n2. Replace lost certificate\n3. Correct certificate details",
+        "sw": "Huduma gani?\n1. Sajili kuzaliwa\n2. Badilisha cheti kilichopotea\n3. Sahihisha maelezo ya cheti",
+    },
+    "ussd.applicant": {
+        "en": "Who is applying?\n1. Parent\n2. Guardian\n3. Myself (adult)",
+        "sw": "Nani anaomba?\n1. Mzazi\n2. Mlezi\n3. Mimi mwenyewe (mtu mzima)",
+    },
+    "ussd.birth_place": {
+        "en": "Where was the child born?\n1. Hospital / clinic\n2. At home\n3. Outside Kenya",
+        "sw": "Mtoto alizaliwa wapi?\n1. Hospitali / kliniki\n2. Nyumbani\n3. Nje ya Kenya",
+    },
+    "ussd.dob": {
+        "en": "Enter date of birth as DDMMYYYY (e.g. 05032026)",
+        "sw": "Weka tarehe ya kuzaliwa kama DDMMYYYY (mf. 05032026)",
+    },
+    "ussd.father": {
+        "en": "Father's details?\n1. Parents married\n2. Not married, father to be listed\n3. Father not to be listed",
+        "sw": "Maelezo ya baba?\n1. Wazazi wameoana\n2. Hawajaoana, baba aandikwe\n3. Baba asiandikwe",
+    },
+    "ussd.checklist_sent": {
+        "en": "{category}. {count} document(s) needed. Full list sent by SMS.",
+        "sw": "{category}. Nyaraka {count} zinahitajika. Orodha kamili imetumwa kwa SMS.",
+    },
+    "ussd.deadline_open": {
+        "en": "Register by {deadline}: {days} day(s) left.",
+        "sw": "Sajili kabla ya {deadline}: zimebaki siku {days}.",
+    },
+    "ussd.deadline_passed": {
+        "en": "The deadline was {deadline}. You need late registration. Choose option 1 for the document list.",
+        "sw": "Mwisho ulikuwa {deadline}. Unahitaji usajili wa kuchelewa. Chagua 1 kupata orodha ya nyaraka.",
+    },
+    "ussd.county": {
+        "en": "Enter your county number (1-47, e.g. 47 for Nairobi)",
+        "sw": "Weka nambari ya kaunti yako (1-47, mf. 47 kwa Nairobi)",
+    },
+    "ussd.pick_day": {
+        "en": "Choose a day:",
+        "sw": "Chagua siku:",
+    },
+    "ussd.pick_slot": {
+        "en": "Choose a time:",
+        "sw": "Chagua saa:",
+    },
+    "ussd.no_slots": {
+        "en": "No free slots on that day. Please dial again and choose another day.",
+        "sw": "Hakuna nafasi siku hiyo. Tafadhali piga tena uchague siku nyingine.",
+    },
+    "ussd.booked": {
+        "en": "Booked {reference}: {day} {slot}. Details sent by SMS.",
+        "sw": "Miadi {reference}: {day} {slot}. Maelezo yametumwa kwa SMS.",
+    },
+    "ussd.reference": {
+        "en": "Enter your appointment reference (e.g. APT-AB23CD)",
+        "sw": "Weka kumbukumbu ya miadi yako (mf. APT-AB23CD)",
+    },
+    "ussd.appointment": {
+        "en": "{reference}: {office}, {day} {slot} ({status})",
+        "sw": "{reference}: {office}, {day} {slot} ({status})",
+    },
+    "ussd.not_found": {
+        "en": "No appointment found for this number with that reference.",
+        "sw": "Hakuna miadi iliyopatikana kwa nambari hii na kumbukumbu hiyo.",
+    },
+    "ussd.invalid": {
+        "en": "Invalid input. Please dial again.",
+        "sw": "Ingizo si sahihi. Tafadhali piga tena.",
+    },
+    "sms.checklist_header": {
+        "en": "{category}. Bring:",
+        "sw": "{category}. Beba:",
+    },
+    "sms.optional": {
+        "en": "(if available)",
+        "sw": "(kama kipo)",
+    },
     "disclaimer": {
         "en": "Guidance only. Requirements can vary by office; confirm with your local registrar.",
         "sw": "Huu ni mwongozo tu. Mahitaji yanaweza kutofautiana kwa ofisi; thibitisha na msajili wa eneo lako.",
