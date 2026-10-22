@@ -190,6 +190,18 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "The registration deadline for ref {reference} passed on {deadline}. You can still register through late registration; dial the CRS USSD code to see what to bring.",
         "sw": "Muda wa kusajili kwa kumb. {reference} uliisha {deadline}. Bado unaweza kusajili kupitia usajili wa kuchelewa; piga msimbo wa USSD wa CRS kuona cha kubeba.",
     },
+    "sms.death_notification_received": {
+        "en": "Our condolences. The death has been recorded (ref {reference}). Please register it by {deadline} at the Civil Registration office to get the death certificate.",
+        "sw": "Pole sana. Kifo kimerekodiwa (kumb. {reference}). Tafadhali kisajili kabla ya {deadline} katika ofisi ya Usajili wa Raia ili upate cheti cha kifo.",
+    },
+    "sms.death_reminder": {
+        "en": "Reminder: {days} day(s) left to register the death (ref {reference}, deadline {deadline}). The death certificate is needed for succession and benefits.",
+        "sw": "Kumbusho: zimebaki siku {days} kusajili kifo (kumb. {reference}, mwisho {deadline}). Cheti cha kifo kinahitajika kwa urithi na mafao.",
+    },
+    "sms.death_overdue": {
+        "en": "The registration deadline for ref {reference} passed on {deadline}. The death can still be registered through late registration; dial the CRS USSD code to see what to bring.",
+        "sw": "Muda wa kusajili kwa kumb. {reference} uliisha {deadline}. Kifo bado kinaweza kusajiliwa kupitia usajili wa kuchelewa; piga msimbo wa USSD wa CRS kuona cha kubeba.",
+    },
     "sms.appointment_booked": {
         "en": "Appointment {reference}: {office}, {day} at {slot}. Bring the documents on your checklist.",
         "sw": "Miadi {reference}: {office}, {day} saa {slot}. Beba nyaraka zilizo kwenye orodha yako.",

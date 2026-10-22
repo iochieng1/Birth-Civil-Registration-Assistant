@@ -1,9 +1,13 @@
-"""Community birth notifications, deadline reminders and the registration gap report.
+"""Community birth and death notifications, deadline reminders and the registration gap report.
 
 Many births, especially home births, never reach a registrar. Community Health
 Promoters (CHPs) already visit new mothers, so they log the birth here; the
 parent then gets SMS reminders as the six-month deadline approaches, and county
 officers can see where notified births are not turning into registrations.
+
+Deaths follow the same pattern: a CHP or chief records the death and the
+informant (next of kin) is reminded to register it, since the death certificate
+is needed for succession, pensions and insurance.
 """
 
 from __future__ import annotations
@@ -13,6 +17,7 @@ from dataclasses import dataclass
 from datetime import date
 
 from . import reference as ref_data
+from .death_rules import DeathPlace, death_registration_deadline
 from .i18n import normalise_lang, t
 from .phone import normalise
 from .refs import new_reference
@@ -29,7 +34,14 @@ class NotificationError(ValueError):
 
 
 BIRTH = "birth"
-EVENTS = {BIRTH: ("BN", registration_deadline)}  # event -> (reference prefix, deadline rule)
+DEATH = "death"
+# event -> (reference prefix, deadline rule)
+EVENTS = {BIRTH: ("BN", registration_deadline), DEATH: ("DN", death_registration_deadline)}
+# event -> SMS message keys: (confirmation, reminder, overdue)
+SMS_KEYS = {
+    BIRTH: ("sms.notification_received", "sms.reminder", "sms.overdue"),
+    DEATH: ("sms.death_notification_received", "sms.death_reminder", "sms.death_overdue"),
+}
 
 
 @dataclass
@@ -109,17 +121,45 @@ def record(
         captured_by,
         today or date.today(),
     )
-    if gateway is not None:
-        gateway.send(
-            notification.phone,
-            t(
-                "sms.notification_received",
-                notification.language,
-                reference=notification.reference,
-                deadline=notification.deadline.isoformat(),
-            ),
-        )
+    _confirm(notification, gateway)
     return notification
+
+
+def record_death(
+    conn: sqlite3.Connection,
+    county_code: str,
+    date_of_death: date,
+    place_of_death: DeathPlace,
+    informant_phone: str,
+    language: str = "en",
+    captured_by: str | None = None,
+    gateway: SmsGateway | None = None,
+    today: date | None = None,
+) -> Notification:
+    """Record a death reported by a CHP or chief; the informant is the next of kin to remind."""
+    notification = _insert(
+        conn,
+        DEATH,
+        county_code,
+        date_of_death,
+        DeathPlace(place_of_death).value,
+        informant_phone,
+        language,
+        captured_by,
+        today or date.today(),
+    )
+    _confirm(notification, gateway)
+    return notification
+
+
+def _confirm(notification: Notification, gateway: SmsGateway | None) -> None:
+    if gateway is None:
+        return
+    key, _, _ = SMS_KEYS[notification.event]
+    gateway.send(
+        notification.phone,
+        t(key, notification.language, reference=notification.reference, deadline=notification.deadline.isoformat()),
+    )
 
 
 def get(conn: sqlite3.Connection, reference: str) -> Notification | None:
@@ -155,10 +195,11 @@ def send_reminders(conn: sqlite3.Connection, gateway: SmsGateway, today: date | 
         if threshold is None or (last is not None and threshold >= last):
             continue
         params = {"reference": notification.reference, "deadline": notification.deadline.isoformat()}
+        _, reminder_key, overdue_key = SMS_KEYS[notification.event]
         if threshold == OVERDUE:
-            message = t("sms.overdue", notification.language, **params)
+            message = t(overdue_key, notification.language, **params)
         else:
-            message = t("sms.reminder", notification.language, days=days_remaining, **params)
+            message = t(reminder_key, notification.language, days=days_remaining, **params)
         if gateway.send(notification.phone, message):
             conn.execute("UPDATE notifications SET last_reminder = ? WHERE id = ?", (threshold, row["id"]))
             sent += 1

@@ -3,6 +3,7 @@ from datetime import date, timedelta
 import pytest
 
 from crs_assistant import db, notifications
+from crs_assistant.death_rules import DeathPlace
 from crs_assistant.rules import BirthPlace
 from crs_assistant.sms import ConsoleGateway
 
@@ -104,3 +105,33 @@ def test_gap_report_orders_worst_county_first(conn):
     assert (turkana.notified, turkana.registered, turkana.overdue, turkana.pending_in_window) == (2, 0, 1, 1)
     assert nairobi.registration_rate == 0.5
     assert nairobi.registered_on_time == 1
+
+
+def test_record_death_confirms_and_reminds(conn):
+    gateway = ConsoleGateway()
+    n = notifications.record_death(
+        conn, "023", date(2026, 6, 1), DeathPlace.HOME, "0712345678", "sw", "CHIEF-1", gateway=gateway, today=TODAY
+    )
+    assert n.reference.startswith("DN-")
+    assert (n.event, n.place, n.deadline) == ("death", "home", date(2026, 12, 1))
+    assert gateway.outbox[-1][1].startswith("Pole sana")
+
+    assert notifications.send_reminders(conn, gateway, today=n.deadline - timedelta(days=10)) == 1
+    assert "kusajili kifo" in gateway.outbox[-1][1]
+    assert notifications.send_reminders(conn, gateway, today=n.deadline + timedelta(days=1)) == 1
+    assert "Kifo bado" in gateway.outbox[-1][1]
+
+
+def test_record_death_rejects_future_date(conn):
+    with pytest.raises(ValueError, match="death"):
+        notifications.record_death(conn, "047", date(2026, 10, 23), DeathPlace.FACILITY, "0712345678", today=TODAY)
+
+
+def test_gap_report_separates_births_and_deaths(conn):
+    record(conn, date(2026, 9, 1), county="047")
+    notifications.record_death(conn, "023", date(2025, 1, 1), DeathPlace.HOME, "0712345678", today=TODAY)
+
+    births = notifications.gap_report(conn, today=TODAY)
+    deaths = notifications.gap_report(conn, today=TODAY, event=notifications.DEATH)
+    assert [g.county_name for g in births] == ["Nairobi"]
+    assert [(g.county_name, g.overdue) for g in deaths] == [("Turkana", 1)]
