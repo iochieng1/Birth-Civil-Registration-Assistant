@@ -30,6 +30,22 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "Birth outside Kenya",
         "sw": "Kuzaliwa nje ya Kenya",
     },
+    "category.death_timely": {
+        "en": "Death registration within the 6-month window",
+        "sw": "Usajili wa kifo ndani ya kipindi cha miezi 6",
+    },
+    "category.death_late": {
+        "en": "Late death registration (more than 6 months after the death)",
+        "sw": "Usajili wa kifo uliochelewa (zaidi ya miezi 6 baada ya kifo)",
+    },
+    "category.death_replacement": {
+        "en": "Replacement of a lost death certificate",
+        "sw": "Kubadilisha cheti cha kifo kilichopotea",
+    },
+    "category.death_abroad": {
+        "en": "Death outside Kenya",
+        "sw": "Kifo nje ya Kenya",
+    },
     # Steps
     "step.collect_notification": {
         "en": "Get the birth notification (B1) from the hospital before you leave",
@@ -83,6 +99,42 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "Submit the correction request with the original certificate and evidence",
         "sw": "Wasilisha ombi la kusahihisha pamoja na cheti halisi na ushahidi",
     },
+    "step.collect_death_notification": {
+        "en": "Get the notification of death (D1) from the hospital",
+        "sw": "Chukua taarifa ya kifo (D1) kutoka hospitali",
+    },
+    "step.report_death_chief": {
+        "en": "Report the death to your Assistant Chief and get a confirmation letter",
+        "sw": "Ripoti kifo kwa Chifu Msaidizi na upate barua ya uthibitisho",
+    },
+    "step.report_death_police": {
+        "en": "Report the death at the nearest police station; a post-mortem may be required",
+        "sw": "Ripoti kifo katika kituo cha polisi kilicho karibu; uchunguzi wa maiti unaweza kuhitajika",
+    },
+    "step.register_death": {
+        "en": "Take the documents to the Civil Registration office to register the death",
+        "sw": "Peleka nyaraka kwenye ofisi ya Usajili wa Raia kusajili kifo",
+    },
+    "step.collect_burial_permit": {
+        "en": "Get the burial permit before the burial",
+        "sw": "Pata kibali cha mazishi kabla ya mazishi",
+    },
+    "step.apply_death_certificate": {
+        "en": "Apply and pay for the death certificate on eCitizen (ecitizen.go.ke)",
+        "sw": "Omba na ulipie cheti cha kifo kwenye eCitizen (ecitizen.go.ke)",
+    },
+    "step.gather_death_evidence": {
+        "en": "Gather at least one proof of the death (D1, burial permit, chief's letter or affidavit)",
+        "sw": "Kusanya angalau uthibitisho mmoja wa kifo (D1, kibali cha mazishi, barua ya chifu au kiapo)",
+    },
+    "step.apply_death_replacement": {
+        "en": "Apply and pay for a replacement death certificate on eCitizen",
+        "sw": "Omba na ulipie cheti mbadala cha kifo kwenye eCitizen",
+    },
+    "step.death_abroad": {
+        "en": "Register the death in the country where it happened and contact the nearest Kenyan embassy for guidance",
+        "sw": "Sajili kifo katika nchi kilipotokea na uwasiliane na ubalozi wa Kenya ulio karibu kwa mwongozo",
+    },
     # Warnings
     "warn.deadline_soon": {
         "en": "Only {days} day(s) left to register on time (deadline {deadline}). Go this week.",
@@ -99,6 +151,18 @@ MESSAGES: dict[str, dict[str, str]] = {
     "warn.abroad": {
         "en": "Births outside Kenya are registered through Kenyan missions abroad.",
         "sw": "Waliozaliwa nje ya Kenya husajiliwa kupitia balozi za Kenya.",
+    },
+    "warn.burial_permit": {
+        "en": "A burial permit is needed before the burial. Register the death first.",
+        "sw": "Kibali cha mazishi kinahitajika kabla ya mazishi. Sajili kifo kwanza.",
+    },
+    "warn.unnatural_death": {
+        "en": "Deaths from accident, violence or an unknown cause must be reported to the police.",
+        "sw": "Vifo vilivyotokana na ajali, vurugu au sababu isiyojulikana lazima viripotiwe polisi.",
+    },
+    "warn.death_abroad": {
+        "en": "Deaths outside Kenya are registered in the country where they happened.",
+        "sw": "Vifo vilivyotokea nje ya Kenya husajiliwa katika nchi vilipotokea.",
     },
     # Readiness
     "ready.yes": {
@@ -210,6 +274,10 @@ MESSAGES: dict[str, dict[str, str]] = {
     "sms.optional": {
         "en": "(if available)",
         "sw": "(kama kipo)",
+    },
+    "group.proof_of_death": {
+        "en": "one proof of the death",
+        "sw": "uthibitisho mmoja wa kifo",
     },
     "disclaimer": {
         "en": "Guidance only. Requirements can vary by office; confirm with your local registrar.",
