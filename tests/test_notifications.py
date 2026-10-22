@@ -22,7 +22,7 @@ def test_record_normalises_and_confirms_by_sms(conn):
     gateway = ConsoleGateway()
     n = record(conn, date(2026, 10, 1), lang="sw", gateway=gateway)
     assert n.reference.startswith("BN-")
-    assert n.parent_phone == "+254712345678"
+    assert n.phone == "+254712345678"
     assert n.deadline == date(2027, 4, 1)
     to, message = gateway.outbox[0]
     assert to == "+254712345678"

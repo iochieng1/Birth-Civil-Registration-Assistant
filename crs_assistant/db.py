@@ -32,20 +32,21 @@ CREATE TABLE IF NOT EXISTS appointments (
 );
 CREATE INDEX IF NOT EXISTS idx_appointments_slot ON appointments(office_id, day, slot, status);
 
-CREATE TABLE IF NOT EXISTS birth_notifications (
+CREATE TABLE IF NOT EXISTS notifications (
     id             INTEGER PRIMARY KEY,
     reference      TEXT NOT NULL UNIQUE,
+    event          TEXT NOT NULL DEFAULT 'birth',
     county_code    TEXT NOT NULL,
-    date_of_birth  TEXT NOT NULL,
-    birth_place    TEXT NOT NULL,
-    parent_phone   TEXT NOT NULL,
+    event_date     TEXT NOT NULL,
+    place          TEXT NOT NULL,
+    phone          TEXT NOT NULL,
     language       TEXT NOT NULL DEFAULT 'en',
     captured_by    TEXT,
     registered_on  TEXT,
     last_reminder  INTEGER,
     created_at     TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX IF NOT EXISTS idx_notifications_open ON birth_notifications(registered_on, county_code);
+CREATE INDEX IF NOT EXISTS idx_notifications_event ON notifications(event, registered_on, county_code);
 """
 
 
@@ -54,9 +55,29 @@ def connect(path: str | Path = ":memory:") -> sqlite3.Connection:
     conn = sqlite3.connect(str(path), check_same_thread=False, isolation_level=None)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    _migrate(conn)
     conn.executescript(SCHEMA)
     _seed_offices(conn)
     return conn
+
+
+# Databases created before death registration have a birth-only table.
+MIGRATE_BIRTH_NOTIFICATIONS = """
+BEGIN;
+ALTER TABLE birth_notifications RENAME TO notifications;
+ALTER TABLE notifications RENAME COLUMN date_of_birth TO event_date;
+ALTER TABLE notifications RENAME COLUMN birth_place TO place;
+ALTER TABLE notifications RENAME COLUMN parent_phone TO phone;
+ALTER TABLE notifications ADD COLUMN event TEXT NOT NULL DEFAULT 'birth';
+DROP INDEX IF EXISTS idx_notifications_open;
+COMMIT;
+"""
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+    if "birth_notifications" in tables and "notifications" not in tables:
+        conn.executescript(MIGRATE_BIRTH_NOTIFICATIONS)
 
 
 def _seed_offices(conn: sqlite3.Connection) -> None:

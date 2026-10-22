@@ -28,30 +28,63 @@ class NotificationError(ValueError):
     pass
 
 
+BIRTH = "birth"
+EVENTS = {BIRTH: ("BN", registration_deadline)}  # event -> (reference prefix, deadline rule)
+
+
 @dataclass
-class BirthNotification:
+class Notification:
     reference: str
+    event: str
     county_code: str
-    date_of_birth: date
-    birth_place: str
-    parent_phone: str
+    event_date: date
+    place: str
+    phone: str
     language: str
     registered_on: date | None
     deadline: date
 
 
-def _from_row(row: sqlite3.Row) -> BirthNotification:
-    dob = date.fromisoformat(row["date_of_birth"])
-    return BirthNotification(
+def _from_row(row: sqlite3.Row) -> Notification:
+    event_date = date.fromisoformat(row["event_date"])
+    _, deadline_rule = EVENTS[row["event"]]
+    return Notification(
         reference=row["reference"],
+        event=row["event"],
         county_code=row["county_code"],
-        date_of_birth=dob,
-        birth_place=row["birth_place"],
-        parent_phone=row["parent_phone"],
+        event_date=event_date,
+        place=row["place"],
+        phone=row["phone"],
         language=row["language"],
         registered_on=date.fromisoformat(row["registered_on"]) if row["registered_on"] else None,
-        deadline=registration_deadline(dob),
+        deadline=deadline_rule(event_date),
     )
+
+
+def _insert(
+    conn: sqlite3.Connection,
+    event: str,
+    county_code: str,
+    event_date: date,
+    place: str,
+    phone: str,
+    language: str,
+    captured_by: str | None,
+    today: date,
+) -> Notification:
+    county = ref_data.county_by_code(county_code)
+    if county is None:
+        raise NotificationError(f"unknown county code {county_code!r}")
+    if event_date > today:
+        raise NotificationError(f"{event} date cannot be in the future")
+    prefix, _ = EVENTS[event]
+    reference = new_reference(prefix)
+    conn.execute(
+        "INSERT INTO notifications (reference, event, county_code, event_date, place, phone, language, captured_by)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (reference, event, county["code"], event_date.isoformat(), place, normalise(phone), normalise_lang(language), captured_by),
+    )
+    return get(conn, reference)
 
 
 def record(
@@ -64,38 +97,39 @@ def record(
     captured_by: str | None = None,
     gateway: SmsGateway | None = None,
     today: date | None = None,
-) -> BirthNotification:
-    today = today or date.today()
-    county = ref_data.county_by_code(county_code)
-    if county is None:
-        raise NotificationError(f"unknown county code {county_code!r}")
-    if date_of_birth > today:
-        raise NotificationError("date_of_birth cannot be in the future")
-    phone = normalise(parent_phone)
-    lang = normalise_lang(language)
-    reference = new_reference("BN")
-    conn.execute(
-        "INSERT INTO birth_notifications (reference, county_code, date_of_birth, birth_place, parent_phone, language, captured_by)"
-        " VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (reference, county["code"], date_of_birth.isoformat(), BirthPlace(birth_place).value, phone, lang, captured_by),
+) -> Notification:
+    notification = _insert(
+        conn,
+        BIRTH,
+        county_code,
+        date_of_birth,
+        BirthPlace(birth_place).value,
+        parent_phone,
+        language,
+        captured_by,
+        today or date.today(),
     )
-    notification = get(conn, reference)
     if gateway is not None:
         gateway.send(
-            phone,
-            t("sms.notification_received", lang, reference=reference, deadline=notification.deadline.isoformat()),
+            notification.phone,
+            t(
+                "sms.notification_received",
+                notification.language,
+                reference=notification.reference,
+                deadline=notification.deadline.isoformat(),
+            ),
         )
     return notification
 
 
-def get(conn: sqlite3.Connection, reference: str) -> BirthNotification | None:
-    row = conn.execute("SELECT * FROM birth_notifications WHERE reference = ?", (reference.upper(),)).fetchone()
+def get(conn: sqlite3.Connection, reference: str) -> Notification | None:
+    row = conn.execute("SELECT * FROM notifications WHERE reference = ?", (reference.upper(),)).fetchone()
     return _from_row(row) if row else None
 
 
 def mark_registered(conn: sqlite3.Connection, reference: str, on: date | None = None) -> bool:
     cur = conn.execute(
-        "UPDATE birth_notifications SET registered_on = ? WHERE reference = ? AND registered_on IS NULL",
+        "UPDATE notifications SET registered_on = ? WHERE reference = ? AND registered_on IS NULL",
         ((on or date.today()).isoformat(), reference.upper()),
     )
     return cur.rowcount == 1
@@ -112,7 +146,7 @@ def send_reminders(conn: sqlite3.Connection, gateway: SmsGateway, today: date | 
     """Send at most one reminder per notification per threshold. Returns the number sent."""
     today = today or date.today()
     sent = 0
-    rows = conn.execute("SELECT * FROM birth_notifications WHERE registered_on IS NULL").fetchall()
+    rows = conn.execute("SELECT * FROM notifications WHERE registered_on IS NULL").fetchall()
     for row in rows:
         notification = _from_row(row)
         days_remaining = (notification.deadline - today).days
@@ -125,8 +159,8 @@ def send_reminders(conn: sqlite3.Connection, gateway: SmsGateway, today: date | 
             message = t("sms.overdue", notification.language, **params)
         else:
             message = t("sms.reminder", notification.language, days=days_remaining, **params)
-        if gateway.send(notification.parent_phone, message):
-            conn.execute("UPDATE birth_notifications SET last_reminder = ? WHERE id = ?", (threshold, row["id"]))
+        if gateway.send(notification.phone, message):
+            conn.execute("UPDATE notifications SET last_reminder = ? WHERE id = ?", (threshold, row["id"]))
             sent += 1
     return sent
 
@@ -146,11 +180,11 @@ class CountyGap:
         return round(self.registered / self.notified, 3) if self.notified else 0.0
 
 
-def gap_report(conn: sqlite3.Connection, today: date | None = None) -> list[CountyGap]:
-    """Per-county view of notified births vs registrations, worst counties first."""
+def gap_report(conn: sqlite3.Connection, today: date | None = None, event: str = BIRTH) -> list[CountyGap]:
+    """Per-county view of notified events vs registrations, worst counties first."""
     today = today or date.today()
     stats: dict[str, CountyGap] = {}
-    for row in conn.execute("SELECT * FROM birth_notifications").fetchall():
+    for row in conn.execute("SELECT * FROM notifications WHERE event = ?", (event,)).fetchall():
         n = _from_row(row)
         gap = stats.get(n.county_code)
         if gap is None:
