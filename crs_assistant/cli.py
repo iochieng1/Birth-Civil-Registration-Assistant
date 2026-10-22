@@ -1,7 +1,7 @@
 """Command-line tasks: ``python -m crs_assistant <command>``.
 
 send-reminders  run daily from cron to send deadline reminders
-gap-report      print the per-county registration gap report
+gap-report      print the per-county registration gap report (--event birth|death)
 load-offices    load real registration offices from a CSV file
 """
 
@@ -69,7 +69,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--database", default=os.getenv("CRS_DATABASE", "crs.db"))
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("send-reminders", help="send due deadline reminders by SMS")
-    sub.add_parser("gap-report", help="print notified vs registered births per county")
+    report = sub.add_parser("gap-report", help="print notified vs registered events per county")
+    report.add_argument("--event", choices=sorted(notifications.EVENTS), default=notifications.BIRTH)
     load = sub.add_parser("load-offices", help="load offices from CSV (county_code,name,slot_capacity)")
     load.add_argument("csv_path")
     args = parser.parse_args(argv)
@@ -79,7 +80,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"sent {notifications.send_reminders(conn, from_env(), today=date.today())} reminder(s)")
     elif args.command == "gap-report":
         print(f"{'County':<18}{'Notified':>9}{'Registered':>11}{'On time':>8}{'Pending':>8}{'Overdue':>8}{'Rate':>7}")
-        for g in notifications.gap_report(conn):
+        for g in notifications.gap_report(conn, event=args.event):
             print(
                 f"{g.county_name:<18}{g.notified:>9}{g.registered:>11}{g.registered_on_time:>8}"
                 f"{g.pending_in_window:>8}{g.overdue:>8}{g.registration_rate:>7.0%}"

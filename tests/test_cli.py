@@ -3,6 +3,7 @@ from datetime import date
 import pytest
 
 from crs_assistant import appointments, cli, db, notifications
+from crs_assistant.death_rules import DeathPlace
 from crs_assistant.rules import BirthPlace
 
 
@@ -55,3 +56,12 @@ def test_send_reminders_and_gap_report(db_path, capsys, monkeypatch):
     out = capsys.readouterr().out
     assert "reminder(s)" in out
     assert "Turkana" in out
+
+
+def test_gap_report_for_deaths(db_path, capsys):
+    conn = db.connect(db_path)
+    notifications.record_death(conn, "009", date(2025, 1, 1), DeathPlace.HOME, "0712345678", today=date.today())
+    assert cli.main(["--database", db_path, "gap-report", "--event", "death"]) == 0
+    assert "Mandera" in capsys.readouterr().out
+    assert cli.main(["--database", db_path, "gap-report"]) == 0
+    assert "Mandera" not in capsys.readouterr().out
