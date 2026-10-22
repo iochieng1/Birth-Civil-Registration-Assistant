@@ -50,7 +50,8 @@ CREATE INDEX IF NOT EXISTS idx_notifications_open ON birth_notifications(registe
 
 
 def connect(path: str | Path = ":memory:") -> sqlite3.Connection:
-    conn = sqlite3.connect(str(path), check_same_thread=False)
+    # Autocommit mode: modules open explicit transactions where atomicity matters.
+    conn = sqlite3.connect(str(path), check_same_thread=False, isolation_level=None)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.executescript(SCHEMA)
@@ -62,8 +63,8 @@ def _seed_offices(conn: sqlite3.Connection) -> None:
     """Seed one placeholder office per county until real office data is loaded."""
     if conn.execute("SELECT 1 FROM offices LIMIT 1").fetchone():
         return
-    conn.executemany(
-        "INSERT INTO offices (county_code, name) VALUES (?, ?)",
-        [(c["code"], f"{c['name']} County Civil Registration Office") for c in reference.counties()],
-    )
-    conn.commit()
+    with conn:
+        conn.executemany(
+            "INSERT INTO offices (county_code, name) VALUES (?, ?)",
+            [(c["code"], f"{c['name']} County Civil Registration Office") for c in reference.counties()],
+        )
