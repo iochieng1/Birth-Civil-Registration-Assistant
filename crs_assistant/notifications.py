@@ -1,4 +1,4 @@
-"""Community birth and death notifications, deadline reminders and the registration gap report.
+"""Community notifications, reminders and the registration gap report (births, deaths, IDs).
 
 Many births, especially home births, never reach a registrar. Community Health
 Promoters (CHPs) already visit new mothers, so they log the birth here; the
@@ -8,6 +8,11 @@ officers can see where notified births are not turning into registrations.
 Deaths follow the same pattern: a CHP or chief records the death and the
 informant (next of kin) is reminded to register it, since the death certificate
 is needed for succession, pensions and insurance.
+
+National IDs reuse it with the 18th birthday as the date that matters: schools,
+chiefs or CHPs register a young person, who is reminded as they approach 18 and
+told when they can apply. Marking the record "registered" means the ID was
+issued, so the gap report shows people who turned 18 without one.
 """
 
 from __future__ import annotations
@@ -19,6 +24,7 @@ from datetime import date
 from . import reference as ref_data
 from .death_rules import DeathPlace, death_registration_deadline
 from .i18n import normalise_lang, t
+from .id_rules import id_eligibility_date
 from .phone import normalise
 from .refs import new_reference
 from .rules import BirthPlace, registration_deadline
@@ -35,12 +41,18 @@ class NotificationError(ValueError):
 
 BIRTH = "birth"
 DEATH = "death"
+NATIONAL_ID = "id"
 # event -> (reference prefix, deadline rule)
-EVENTS = {BIRTH: ("BN", registration_deadline), DEATH: ("DN", death_registration_deadline)}
+EVENTS = {
+    BIRTH: ("BN", registration_deadline),
+    DEATH: ("DN", death_registration_deadline),
+    NATIONAL_ID: ("ID", id_eligibility_date),
+}
 # event -> SMS message keys: (confirmation, reminder, overdue)
 SMS_KEYS = {
     BIRTH: ("sms.notification_received", "sms.reminder", "sms.overdue"),
     DEATH: ("sms.death_notification_received", "sms.death_reminder", "sms.death_overdue"),
+    NATIONAL_ID: ("sms.id_reminder_registered", "sms.id_reminder", "sms.id_eligible"),
 }
 
 
@@ -149,6 +161,36 @@ def record_death(
         today or date.today(),
     )
     _confirm(notification, gateway)
+    return notification
+
+
+def record_id_reminder(
+    conn: sqlite3.Connection,
+    county_code: str,
+    date_of_birth: date,
+    phone: str,
+    language: str = "en",
+    captured_by: str | None = None,
+    gateway: SmsGateway | None = None,
+    today: date | None = None,
+) -> Notification:
+    """Register a young person for turning-18 reminders to apply for a national ID."""
+    today = today or date.today()
+    notification = _insert(
+        conn, NATIONAL_ID, county_code, date_of_birth, "", phone, language, captured_by, today
+    )
+    if notification.deadline <= today:
+        # Already eligible: tell them now and skip the countdown reminders.
+        conn.execute("UPDATE notifications SET last_reminder = ? WHERE reference = ?", (OVERDUE, notification.reference))
+        if gateway is not None:
+            _, _, eligible_key = SMS_KEYS[NATIONAL_ID]
+            gateway.send(
+                notification.phone,
+                t(eligible_key, notification.language, reference=notification.reference,
+                  deadline=notification.deadline.isoformat()),
+            )
+    else:
+        _confirm(notification, gateway)
     return notification
 
 

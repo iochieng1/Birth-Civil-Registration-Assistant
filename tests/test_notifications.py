@@ -135,3 +135,30 @@ def test_gap_report_separates_births_and_deaths(conn):
     deaths = notifications.gap_report(conn, today=TODAY, event=notifications.DEATH)
     assert [g.county_name for g in births] == ["Nairobi"]
     assert [(g.county_name, g.overdue) for g in deaths] == [("Turkana", 1)]
+
+
+def test_id_reminders_count_down_to_18th_birthday(conn):
+    gateway = ConsoleGateway()
+    n = notifications.record_id_reminder(conn, "009", date(2008, 12, 1), "0712345678", "sw", "SCHOOL-1", gateway=gateway, today=TODAY)
+    assert n.reference.startswith("ID-")
+    assert (n.event, n.deadline) == ("id", date(2026, 12, 1))
+    assert "Umesajiliwa" in gateway.outbox[-1][1]
+
+    assert notifications.send_reminders(conn, gateway, today=date(2026, 11, 20)) == 1
+    assert "Siku 11" in gateway.outbox[-1][1]
+    assert notifications.send_reminders(conn, gateway, today=date(2026, 12, 2)) == 1
+    assert "sasa unaweza kuomba" in gateway.outbox[-1][1]
+    assert notifications.send_reminders(conn, gateway, today=date(2026, 12, 30)) == 0
+
+
+def test_id_reminder_for_someone_already_18_is_sent_once(conn):
+    gateway = ConsoleGateway()
+    n = notifications.record_id_reminder(conn, "047", date(2005, 3, 1), "0712345678", gateway=gateway, today=TODAY)
+    assert gateway.outbox[-1][1].startswith("You turned 18 on 2023-03-01")
+    assert notifications.send_reminders(conn, gateway, today=TODAY) == 0
+
+    report = notifications.gap_report(conn, today=TODAY, event=notifications.NATIONAL_ID)
+    assert (report[0].county_name, report[0].overdue) == ("Nairobi", 1)
+    notifications.mark_registered(conn, n.reference, TODAY)
+    report = notifications.gap_report(conn, today=TODAY, event=notifications.NATIONAL_ID)
+    assert (report[0].registered, report[0].overdue) == (1, 0)

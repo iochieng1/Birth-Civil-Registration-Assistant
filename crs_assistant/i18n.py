@@ -262,6 +262,18 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "The registration deadline for ref {reference} passed on {deadline}. The death can still be registered through late registration; dial the CRS USSD code to see what to bring.",
         "sw": "Muda wa kusajili kwa kumb. {reference} uliisha {deadline}. Kifo bado kinaweza kusajiliwa kupitia usajili wa kuchelewa; piga msimbo wa USSD wa CRS kuona cha kubeba.",
     },
+    "sms.id_reminder_registered": {
+        "en": "Registered for national ID reminders (ref {reference}). You can apply from {deadline}, when you turn 18. Keep your birth certificate safe.",
+        "sw": "Umesajiliwa kwa vikumbusho vya kitambulisho (kumb. {reference}). Unaweza kuomba kuanzia {deadline}, ukitimiza miaka 18. Hifadhi cheti chako cha kuzaliwa.",
+    },
+    "sms.id_reminder": {
+        "en": "{days} day(s) until you turn 18 on {deadline} and can apply for a national ID (ref {reference}). Start gathering your birth certificate and parents' IDs.",
+        "sw": "Siku {days} hadi utimize miaka 18 tarehe {deadline} na uweze kuomba kitambulisho (kumb. {reference}). Anza kukusanya cheti chako cha kuzaliwa na vitambulisho vya wazazi.",
+    },
+    "sms.id_eligible": {
+        "en": "You turned 18 on {deadline} and can now apply for your national ID (ref {reference}). Dial the CRS USSD code for the document list.",
+        "sw": "Ulitimiza miaka 18 tarehe {deadline} na sasa unaweza kuomba kitambulisho cha taifa (kumb. {reference}). Piga msimbo wa USSD wa CRS kupata orodha ya nyaraka.",
+    },
     "sms.appointment_booked": {
         "en": "Appointment {reference}: {office}, {day} at {slot}. Bring the documents on your checklist.",
         "sw": "Miadi {reference}: {office}, {day} saa {slot}. Beba nyaraka zilizo kwenye orodha yako.",
