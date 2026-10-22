@@ -18,6 +18,9 @@
   label { display: block; margin: 12px 0 4px; font-weight: 600; }
   select, input, button { font: inherit; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
   button { background: var(--accent); color: #fff; border: 0; margin-top: 16px; cursor: pointer; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 480px) { .row-2 { grid-template-columns: 1fr; } }
+  #birth-first { margin: 8px 0; }
   button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); width: auto; margin: 0; padding: 6px 12px; }
   .check { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; }
   .check input { width: auto; margin-top: 4px; }
@@ -45,6 +48,9 @@
       <option value="correction" data-i18n="svc_correction">Correct details on a certificate</option>
       <option value="death" data-i18n="svc_death">Register a death / get a death certificate</option>
       <option value="death_replacement" data-i18n="svc_death_replacement">Replace a lost death certificate</option>
+      <option value="id_first" data-i18n="svc_id_first">Get my first national ID</option>
+      <option value="id_replacement" data-i18n="svc_id_replacement">Replace a lost national ID</option>
+      <option value="id_change" data-i18n="svc_id_change">Change details on my national ID</option>
     </select>
 
     <div id="applicant-field">
@@ -102,6 +108,45 @@
       </select>
     </div>
 
+    <div id="id-fields" hidden>
+      <label for="id-dob" data-i18n="id_dob">Your date of birth</label>
+      <input id="id-dob" type="date">
+
+      <label for="id-cert" data-i18n="id_cert">Do you have your own birth certificate?</label>
+      <select id="id-cert">
+        <option value="yes" data-i18n="yes">Yes</option>
+        <option value="no" data-i18n="no">No</option>
+      </select>
+
+      <div class="row-2">
+        <div>
+          <label for="id-mother" data-i18n="id_mother">Your mother</label>
+          <select id="id-mother">
+            <option value="has_id" data-i18n="parent_has_id">Has a national ID</option>
+            <option value="deceased" data-i18n="parent_deceased">Has died</option>
+            <option value="unknown" data-i18n="parent_unknown">Not known / no ID</option>
+          </select>
+        </div>
+        <div>
+          <label for="id-father" data-i18n="id_father">Your father</label>
+          <select id="id-father">
+            <option value="has_id" data-i18n="parent_has_id">Has a national ID</option>
+            <option value="deceased" data-i18n="parent_deceased">Has died</option>
+            <option value="unknown" data-i18n="parent_unknown">Not known / no ID</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="id-change-fields" hidden>
+      <label for="id-reason" data-i18n="id_reason">What is changing?</label>
+      <select id="id-reason">
+        <option value="marriage" data-i18n="reason_marriage">My name after marriage</option>
+        <option value="name_change" data-i18n="reason_name_change">My name (deed poll)</option>
+        <option value="error" data-i18n="reason_error">Correcting an error</option>
+      </select>
+    </div>
+
     <button type="submit" data-i18n="show">Show my checklist</button>
   </form>
 
@@ -109,6 +154,7 @@
     <h2 id="category"></h2>
     <p id="deadline"></p>
     <div id="warnings"></div>
+    <button type="button" class="secondary" id="birth-first" hidden data-i18n="birth_first">Show the checklist to register my own birth</button>
     <h3 data-i18n="bring">Tick what you already have</h3>
     <div id="items"></div>
     <p id="readiness" aria-live="polite"></p>
@@ -140,6 +186,13 @@ const UI = {
     death_place_home: "Nyumbani / katika jamii", circumstance: "Chanzo cha kifo",
     cause_natural: "Ugonjwa / sababu za kawaida", cause_unnatural: "Ajali, vurugu au sababu isiyojulikana",
     deceased_id: "Marehemu alikuwa na kitambulisho cha taifa?", yes: "Ndiyo", no: "Hapana",
+    svc_id_first: "Pata kitambulisho changu cha kwanza", svc_id_replacement: "Badilisha kitambulisho kilichopotea",
+    svc_id_change: "Badilisha maelezo kwenye kitambulisho", id_dob: "Tarehe yako ya kuzaliwa",
+    id_cert: "Una cheti chako cha kuzaliwa?", id_mother: "Mama yako", id_father: "Baba yako",
+    parent_has_id: "Ana kitambulisho cha taifa", parent_deceased: "Amefariki", parent_unknown: "Hajulikani / hana kitambulisho",
+    id_reason: "Nini kinabadilika?", reason_marriage: "Jina langu baada ya ndoa", reason_name_change: "Jina langu (deed poll)",
+    reason_error: "Kusahihisha kosa", birth_first: "Onyesha orodha ya kusajili kuzaliwa kwangu",
+    applyFrom: "Unaweza kuomba kuanzia",
     intro: "Jua hasa unachohitaji kubeba kabla ya kwenda, ili ufanye safari moja tu.",
     service: "Unahitaji nini?", svc_register: "Sajili kuzaliwa / pata cheti cha kuzaliwa",
     svc_replacement: "Badilisha cheti kilichopotea", svc_correction: "Sahihisha maelezo ya cheti",
@@ -155,7 +208,8 @@ const UI = {
   },
   en: {
     deadline: "Deadline to register on time", days: "day(s) left", optional: "if available",
-    anyOne: "Any one of these:", noSlots: "No free slots on this day", booked: "Booked"
+    anyOne: "Any one of these:", noSlots: "No free slots on this day", booked: "Booked",
+    applyFrom: "You can apply from"
   }
 };
 let lang = "en";
@@ -173,12 +227,17 @@ function applyLang() {
 }
 
 const isDeath = () => $("service").value.startsWith("death");
+const isId = () => $("service").value.startsWith("id_");
 
 function syncFields() {
   const death = isDeath();
   const registering = $("service").value === "register";
   const registeringDeath = $("service").value === "death";
-  $("applicant-field").hidden = death;
+  const idFirst = $("service").value === "id_first";
+  $("applicant-field").hidden = death || isId();
+  $("id-fields").hidden = !idFirst;
+  $("id-dob").required = idFirst;
+  $("id-change-fields").hidden = $("service").value !== "id_change";
   $("birth-fields").hidden = !registering;
   $("dob").required = registering;
   $("father-field").hidden = $("applicant").value === "self";
@@ -202,8 +261,28 @@ function buildDeathRequest(have) {
   };
 }
 
+function buildIdRequest(have) {
+  const first = $("service").value === "id_first";
+  return {
+    service: $("service").value,
+    date_of_birth: first ? $("id-dob").value : today(),
+    has_birth_certificate: $("id-cert").value === "yes",
+    mother: $("id-mother").value,
+    father: $("id-father").value,
+    change_reason: $("id-reason").value,
+    lang, have,
+  };
+}
+
+function checklistPath() {
+  if (isDeath()) return "checklist/death";
+  if (isId()) return "checklist/id";
+  return "checklist";
+}
+
 function buildRequest(have) {
   if (isDeath()) return buildDeathRequest(have);
+  if (isId()) return buildIdRequest(have);
   const father = $("father").value;
   const registering = $("service").value === "register";
   return {
@@ -231,7 +310,7 @@ function ticked() {
 async function loadChecklist() {
   lastRequest = buildRequest(ticked());
   let data;
-  try { data = await post(isDeath() ? "checklist/death" : "checklist", lastRequest); }
+  try { data = await post(checklistPath(), lastRequest); }
   catch (err) { $("result").hidden = false; $("category").textContent = err.message; return; }
   render(data);
 }
@@ -239,8 +318,15 @@ async function loadChecklist() {
 function render({ checklist, readiness }) {
   $("result").hidden = false;
   $("category").textContent = checklist.category_label;
-  $("deadline").textContent = checklist.deadline
-    ? `${tr("deadline")}: ${checklist.deadline} (${Math.max(checklist.days_remaining, 0)} ${tr("days")})` : "";
+  if (checklist.category.startsWith("id_")) {
+    // For IDs the date is when the applicant turns 18, not a deadline.
+    $("deadline").textContent = checklist.days_remaining > 0
+      ? `${tr("applyFrom")}: ${checklist.deadline} (${checklist.days_remaining} ${tr("days")})` : "";
+  } else {
+    $("deadline").textContent = checklist.deadline
+      ? `${tr("deadline")}: ${checklist.deadline} (${Math.max(checklist.days_remaining, 0)} ${tr("days")})` : "";
+  }
+  $("birth-first").hidden = checklist.category !== "id_birth_cert_first";
   $("warnings").replaceChildren(...checklist.warnings.map((w) => Object.assign(document.createElement("p"), { className: "warn", textContent: w })));
   const have = new Set(lastRequest.have || []);
   const items = [];
@@ -302,11 +388,21 @@ async function book() {
 async function init() {
   const counties = await (await fetch("counties")).json();
   $("county").replaceChildren(new Option("—", ""), ...counties.map((c) => new Option(c.name, c.code)));
-  $("dob").max = $("dod").max = today();
+  $("dob").max = $("dod").max = $("id-dob").max = today();
 }
 
 $("lang-toggle").addEventListener("click", () => { lang = lang === "en" ? "sw" : "en"; applyLang(); });
 $("service").addEventListener("change", syncFields);
+$("birth-first").addEventListener("click", () => {
+  // Switch to the adult's own late birth registration, keeping the date of birth.
+  $("service").value = "register";
+  $("applicant").value = "self";
+  $("dob").value = $("id-dob").value;
+  syncFields();
+  $("items").replaceChildren();
+  loadChecklist();
+  $("case-form").scrollIntoView({ behavior: "smooth" });
+});
 $("applicant").addEventListener("change", syncFields);
 $("case-form").addEventListener("submit", (e) => { e.preventDefault(); $("items").replaceChildren(); loadChecklist(); });
 $("county").addEventListener("change", loadSlots);
