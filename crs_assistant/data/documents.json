@@ -114,5 +114,41 @@
   "death_certificate_copy": {
     "en": "Copy of the lost death certificate or its entry number (if known)",
     "sw": "Nakala ya cheti cha kifo kilichopotea au nambari yake ya usajili (kama inajulikana)"
+  },
+  "applicant_birth_certificate": {
+    "en": "Your own birth certificate (original and copy)",
+    "sw": "Cheti chako cha kuzaliwa (asili na nakala)"
+  },
+  "parent_death_certificate": {
+    "en": "Death certificate of a deceased parent (copy)",
+    "sw": "Cheti cha kifo cha mzazi aliyefariki (nakala)"
+  },
+  "id_introduction_letter": {
+    "en": "Letter from the Assistant Chief / Chief introducing you (needed when parents' IDs are not available)",
+    "sw": "Barua ya utambulisho kutoka kwa Chifu Msaidizi / Chifu (inahitajika kama vitambulisho vya wazazi havipatikani)"
+  },
+  "id_police_abstract": {
+    "en": "Police abstract reporting the lost or stolen ID",
+    "sw": "Ripoti ya polisi (abstract) kuhusu kitambulisho kilichopotea au kuibiwa"
+  },
+  "lost_id_copy": {
+    "en": "Copy of the lost ID or its ID number (if known)",
+    "sw": "Nakala ya kitambulisho kilichopotea au nambari yake (kama inajulikana)"
+  },
+  "original_id": {
+    "en": "Your current national ID card",
+    "sw": "Kitambulisho chako cha taifa cha sasa"
+  },
+  "own_marriage_certificate": {
+    "en": "Your marriage certificate",
+    "sw": "Cheti chako cha ndoa"
+  },
+  "deed_poll": {
+    "en": "Registered deed poll and the Kenya Gazette notice of the change of name",
+    "sw": "Hati ya kubadilisha jina (deed poll) iliyosajiliwa na tangazo la Gazeti la Kenya"
+  },
+  "id_fee_payment": {
+    "en": "Payment confirmation for the ID fee (check the current fee on eCitizen or at the office)",
+    "sw": "Uthibitisho wa malipo ya ada ya kitambulisho (angalia ada ya sasa kwenye eCitizen au ofisini)"
   }
 }
