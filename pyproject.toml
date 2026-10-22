@@ -12,7 +12,7 @@ dev = ["httpx>=0.28", "pytest>=8.3"]
 include = ["crs_assistant*"]
 
 [tool.setuptools.package-data]
-crs_assistant = ["data/*.json"]
+crs_assistant = ["data/*.json", "static/*.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

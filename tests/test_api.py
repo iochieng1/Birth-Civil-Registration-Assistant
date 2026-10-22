@@ -21,6 +21,12 @@ def client(gateway):
     return TestClient(app)
 
 
+def test_index_page_served(client):
+    resp = client.get("/")
+    assert resp.headers["content-type"].startswith("text/html")
+    assert "Birth Registration Assistant" in resp.text
+
+
 def test_health(client):
     assert client.get("/health").json()["status"] == "ok"
 

@@ -8,11 +8,12 @@ import sqlite3
 from collections.abc import Callable
 from dataclasses import asdict
 from datetime import date
+from importlib import resources
 from typing import Annotated, Literal
 from urllib.parse import parse_qs
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from . import __version__, appointments, checklist, db, notifications, reference, ussd
@@ -99,6 +100,12 @@ def create_app(
             raise HTTPException(401, "invalid API key")
 
     staff = [Depends(require_staff)]
+
+    index_html = resources.files("crs_assistant.static").joinpath("index.html").read_text(encoding="utf-8")
+
+    @app.get("/", response_class=HTMLResponse, include_in_schema=False)
+    def index():
+        return index_html
 
     @app.get("/health")
     def health():
