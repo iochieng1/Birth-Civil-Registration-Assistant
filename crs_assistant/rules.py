@@ -25,6 +25,8 @@ ADULT_AGE = 18
 
 
 class Service(StrEnum):
+    """Birth services. Death services live in ``death_rules.DeathService``."""
+
     REGISTER = "register"
     REPLACEMENT = "replacement"
     CORRECTION = "correction"
@@ -49,6 +51,10 @@ class Category(StrEnum):
     REPLACEMENT = "replacement"
     CORRECTION = "correction"
     ABROAD = "abroad"
+    DEATH_TIMELY = "death_timely"
+    DEATH_LATE = "death_late"
+    DEATH_REPLACEMENT = "death_replacement"
+    DEATH_ABROAD = "death_abroad"
 
 
 @dataclass(frozen=True)
@@ -76,7 +82,7 @@ class RequiredDocument:
 
 @dataclass
 class Plan:
-    service: Service
+    service: StrEnum
     category: Category
     deadline: date | None
     days_remaining: int | None
