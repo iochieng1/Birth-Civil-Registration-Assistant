@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from . import __version__, appointments, checklist, db, notifications, reference, ussd
 from .death_rules import Circumstance, DeathCase, DeathPlace, DeathService, build_death_plan
 from .i18n import normalise_lang, t
+from .id_rules import ChangeReason, IdCase, IdService, ParentStatus, build_id_plan
 from .phone import InvalidPhone, normalise
 from .rules import Applicant, BirthPlace, Case, Service, build_plan
 from .sms import SmsGateway, from_env
@@ -47,12 +48,23 @@ class DeathChecklistRequest(BaseModel):
     have: list[str] | None = Field(default=None, description="Document ids the informant already has")
 
 
+class IdChecklistRequest(BaseModel):
+    service: IdService = IdService.FIRST_TIME
+    date_of_birth: date
+    has_birth_certificate: bool = True
+    mother: ParentStatus = ParentStatus.HAS_ID
+    father: ParentStatus = ParentStatus.HAS_ID
+    change_reason: ChangeReason = ChangeReason.ERROR
+    lang: Lang = "en"
+    have: list[str] | None = Field(default=None, description="Document ids the applicant already has")
+
+
 class BookingRequest(BaseModel):
     office_id: int
     day: date
     slot: str
     phone: str
-    service: Service | DeathService = Service.REGISTER
+    service: Service | DeathService | IdService = Service.REGISTER
     lang: Lang = "en"
 
 
@@ -74,6 +86,14 @@ class DeathNotificationRequest(BaseModel):
     date_of_death: date
     place_of_death: DeathPlace
     informant_phone: str
+    language: Lang = "en"
+    captured_by: str | None = None
+
+
+class IdReminderRequest(BaseModel):
+    county_code: str
+    date_of_birth: date
+    phone: str
     language: Lang = "en"
     captured_by: str | None = None
 
@@ -228,6 +248,26 @@ def create_app(
             raise HTTPException(404, "no active appointment with that reference and phone")
         return {"reference": ref.upper(), "status": "cancelled"}
 
+    @app.post("/checklist/id")
+    def make_id_checklist(req: IdChecklistRequest):
+        try:
+            case = IdCase(
+                req.service,
+                req.date_of_birth,
+                has_birth_certificate=req.has_birth_certificate,
+                mother=req.mother,
+                father=req.father,
+                change_reason=req.change_reason,
+                today=clock(),
+            )
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        result = _checklist_response(build_id_plan(case), req.have, req.lang)
+        if result["checklist"]["category"] == "id_birth_cert_first":
+            # Point clients at the birth checklist for an adult registering their own birth.
+            result["next"] = {"path": "/checklist", "body": {"date_of_birth": req.date_of_birth, "applicant": "self"}}
+        return result
+
     # Community health promoters and registry staff
     @app.post("/notifications", status_code=201, dependencies=staff)
     def create_notification(req: NotificationRequest, conn: Conn):
@@ -265,6 +305,23 @@ def create_app(
             raise HTTPException(422, str(exc)) from exc
         return _notification_response(n)
 
+    @app.post("/notifications/ids", status_code=201, dependencies=staff)
+    def create_id_reminder(req: IdReminderRequest, conn: Conn):
+        try:
+            n = notifications.record_id_reminder(
+                conn,
+                req.county_code,
+                req.date_of_birth,
+                req.phone,
+                req.language,
+                req.captured_by,
+                gateway=sms,
+                today=clock(),
+            )
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return _notification_response(n)
+
     @app.post("/notifications/{ref}/registered", dependencies=staff)
     def notification_registered(ref: str, conn: Conn, req: RegisteredRequest | None = None):
         on = (req.registered_on if req else None) or clock()
@@ -277,7 +334,7 @@ def create_app(
         return {"sent": notifications.send_reminders(conn, sms, today=clock())}
 
     @app.get("/reports/gaps", dependencies=staff)
-    def gaps(conn: Conn, event: Literal["birth", "death"] = "birth"):
+    def gaps(conn: Conn, event: Literal["birth", "death", "id"] = "birth"):
         return [
             {**asdict(g), "registration_rate": g.registration_rate}
             for g in notifications.gap_report(conn, today=clock(), event=event)

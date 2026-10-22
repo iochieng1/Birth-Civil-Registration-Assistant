@@ -175,3 +175,35 @@ def test_death_notification_and_report(client, gateway):
 def test_booking_accepts_death_service(client):
     body = {"office_id": 47, "day": "2026-10-26", "slot": "09:00", "phone": "0712345678", "service": "death"}
     assert client.post("/appointments", json=body).json()["service"] == "death"
+
+
+def test_id_checklist(client):
+    data = client.post("/checklist/id", json={"date_of_birth": "2008-01-01", "father": "deceased", "have": ["applicant_birth_certificate"]}).json()
+    assert data["checklist"]["category"] == "id_first_time"
+    assert data["readiness"]["missing"] == ["mother_id", "parent_death_certificate"]
+    assert "next" not in data
+
+    blocked = client.post("/checklist/id", json={"date_of_birth": "2005-01-01", "has_birth_certificate": False, "lang": "sw"}).json()
+    assert blocked["checklist"]["category"] == "id_birth_cert_first"
+    assert blocked["next"] == {"path": "/checklist", "body": {"date_of_birth": "2005-01-01", "applicant": "self"}}
+    follow = client.post(blocked["next"]["path"], json=blocked["next"]["body"]).json()
+    assert follow["checklist"]["category"] == "late_adult"
+
+    young = client.post("/checklist/id", json={"date_of_birth": "2010-05-05"}).json()
+    assert young["checklist"]["category"] == "id_not_yet"
+    assert young["checklist"]["deadline"] == "2028-05-05"
+
+    change = client.post("/checklist/id", json={"service": "id_change", "change_reason": "marriage", "date_of_birth": "1990-01-01"})
+    assert change.json()["checklist"]["category"] == "id_change"
+    assert client.post("/checklist/id", json={"date_of_birth": "2030-01-01"}).status_code == 422
+
+
+def test_id_reminders_and_gap_report(client, gateway):
+    body = {"county_code": "9", "date_of_birth": "2004-06-01", "phone": "0712345678", "captured_by": "SCHOOL-7"}
+    resp = client.post("/notifications/ids", json=body, headers=STAFF)
+    assert resp.status_code == 201
+    assert resp.json()["event"] == "id" and resp.json()["reference"].startswith("ID-")
+    assert gateway.outbox[-1][1].startswith("You turned 18")
+    report = client.get("/reports/gaps", params={"event": "id"}, headers=STAFF).json()
+    assert (report[0]["county_name"], report[0]["overdue"]) == ("Mandera", 1)
+    assert client.post("/notifications/ids", json=body).status_code == 401
