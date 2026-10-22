@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Birth Registration Assistant</title>
+<title>Civil Registration Assistant</title>
 <style>
   :root { --bg: #f6f7f4; --card: #fff; --ink: #1d2a24; --muted: #5b6b63; --accent: #006b3f; --warn: #a33a1c; --line: #dfe4df; }
   @media (prefers-color-scheme: dark) {
@@ -32,7 +32,7 @@
 <body>
 <main>
   <header>
-    <h1 data-i18n="title">Birth Registration Assistant</h1>
+    <h1 data-i18n="title">Birth &amp; Death Registration Assistant</h1>
     <button class="secondary" id="lang-toggle" type="button">Kiswahili</button>
   </header>
   <p class="muted" data-i18n="intro">Find out exactly what to bring before you go, so you only make one trip.</p>
@@ -43,14 +43,18 @@
       <option value="register" data-i18n="svc_register">Register a birth / get a birth certificate</option>
       <option value="replacement" data-i18n="svc_replacement">Replace a lost certificate</option>
       <option value="correction" data-i18n="svc_correction">Correct details on a certificate</option>
+      <option value="death" data-i18n="svc_death">Register a death / get a death certificate</option>
+      <option value="death_replacement" data-i18n="svc_death_replacement">Replace a lost death certificate</option>
     </select>
 
-    <label for="applicant" data-i18n="applicant">Who is applying?</label>
-    <select id="applicant">
-      <option value="parent" data-i18n="app_parent">Parent</option>
-      <option value="guardian" data-i18n="app_guardian">Guardian</option>
-      <option value="self" data-i18n="app_self">Myself (adult)</option>
-    </select>
+    <div id="applicant-field">
+      <label for="applicant" data-i18n="applicant">Who is applying?</label>
+      <select id="applicant">
+        <option value="parent" data-i18n="app_parent">Parent</option>
+        <option value="guardian" data-i18n="app_guardian">Guardian</option>
+        <option value="self" data-i18n="app_self">Myself (adult)</option>
+      </select>
+    </div>
 
     <div id="birth-fields">
       <label for="dob" data-i18n="dob">Date of birth</label>
@@ -71,6 +75,31 @@
           <option value="none" data-i18n="father_none">Father not to be listed</option>
         </select>
       </div>
+    </div>
+
+    <div id="death-fields" hidden>
+      <p class="muted" data-i18n="condolences">We are sorry for your loss.</p>
+      <label for="dod" data-i18n="dod">Date of death</label>
+      <input id="dod" type="date">
+
+      <label for="death-place" data-i18n="death_place">Where did the death happen?</label>
+      <select id="death-place">
+        <option value="facility" data-i18n="place_facility">Hospital / clinic</option>
+        <option value="home" data-i18n="death_place_home">At home / in the community</option>
+        <option value="abroad" data-i18n="place_abroad">Outside Kenya</option>
+      </select>
+
+      <label for="circumstance" data-i18n="circumstance">Cause of death</label>
+      <select id="circumstance">
+        <option value="natural" data-i18n="cause_natural">Illness / natural causes</option>
+        <option value="unnatural" data-i18n="cause_unnatural">Accident, violence or unknown cause</option>
+      </select>
+
+      <label for="deceased-id" data-i18n="deceased_id">Did the deceased have a national ID?</label>
+      <select id="deceased-id">
+        <option value="yes" data-i18n="yes">Yes</option>
+        <option value="no" data-i18n="no">No</option>
+      </select>
     </div>
 
     <button type="submit" data-i18n="show">Show my checklist</button>
@@ -105,7 +134,12 @@
 <script>
 const UI = {
   sw: {
-    title: "Msaidizi wa Usajili wa Kuzaliwa",
+    title: "Msaidizi wa Usajili wa Kuzaliwa na Vifo",
+    svc_death: "Sajili kifo / pata cheti cha kifo", svc_death_replacement: "Badilisha cheti cha kifo kilichopotea",
+    condolences: "Pole sana kwa msiba.", dod: "Tarehe ya kifo", death_place: "Kifo kilitokea wapi?",
+    death_place_home: "Nyumbani / katika jamii", circumstance: "Chanzo cha kifo",
+    cause_natural: "Ugonjwa / sababu za kawaida", cause_unnatural: "Ajali, vurugu au sababu isiyojulikana",
+    deceased_id: "Marehemu alikuwa na kitambulisho cha taifa?", yes: "Ndiyo", no: "Hapana",
     intro: "Jua hasa unachohitaji kubeba kabla ya kwenda, ili ufanye safari moja tu.",
     service: "Unahitaji nini?", svc_register: "Sajili kuzaliwa / pata cheti cha kuzaliwa",
     svc_replacement: "Badilisha cheti kilichopotea", svc_correction: "Sahihisha maelezo ya cheti",
@@ -138,20 +172,44 @@ function applyLang() {
   if (lastRequest) loadChecklist();
 }
 
+const isDeath = () => $("service").value.startsWith("death");
+
 function syncFields() {
+  const death = isDeath();
   const registering = $("service").value === "register";
+  const registeringDeath = $("service").value === "death";
+  $("applicant-field").hidden = death;
   $("birth-fields").hidden = !registering;
   $("dob").required = registering;
   $("father-field").hidden = $("applicant").value === "self";
+  $("death-fields").hidden = !registeringDeath;
+  $("dod").required = registeringDeath;
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function buildDeathRequest(have) {
+  const registering = $("service").value === "death";
+  return {
+    service: $("service").value,
+    date_of_death: registering ? $("dod").value : today(),
+    place_of_death: $("death-place").value,
+    circumstance: $("circumstance").value,
+    deceased_had_id: $("deceased-id").value === "yes",
+    lang, have,
+  };
 }
 
 function buildRequest(have) {
+  if (isDeath()) return buildDeathRequest(have);
   const father = $("father").value;
   const registering = $("service").value === "register";
   return {
     service: $("service").value,
     applicant: $("applicant").value,
-    date_of_birth: registering ? $("dob").value : new Date().toISOString().slice(0, 10),
+    date_of_birth: registering ? $("dob").value : today(),
     birth_place: $("place").value,
     parents_married: father === "married",
     include_father: father !== "none" && $("applicant").value !== "self",
@@ -173,7 +231,7 @@ function ticked() {
 async function loadChecklist() {
   lastRequest = buildRequest(ticked());
   let data;
-  try { data = await post("checklist", lastRequest); }
+  try { data = await post(isDeath() ? "checklist/death" : "checklist", lastRequest); }
   catch (err) { $("result").hidden = false; $("category").textContent = err.message; return; }
   render(data);
 }
@@ -207,7 +265,7 @@ function render({ checklist, readiness }) {
   $("disclaimer").textContent = checklist.disclaimer;
   $("readiness").className = readiness && readiness.ready ? "ok" : "warn";
   $("readiness").textContent = readiness ? readiness.message : "";
-  $("booking").hidden = checklist.category === "abroad";
+  $("booking").hidden = checklist.category === "abroad" || checklist.category === "death_abroad";
 }
 
 async function loadSlots() {
@@ -244,7 +302,7 @@ async function book() {
 async function init() {
   const counties = await (await fetch("counties")).json();
   $("county").replaceChildren(new Option("—", ""), ...counties.map((c) => new Option(c.name, c.code)));
-  $("dob").max = new Date().toISOString().slice(0, 10);
+  $("dob").max = $("dod").max = today();
 }
 
 $("lang-toggle").addEventListener("click", () => { lang = lang === "en" ? "sw" : "en"; applyLang(); });

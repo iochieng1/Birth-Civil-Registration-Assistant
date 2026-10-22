@@ -24,7 +24,7 @@ def client(gateway):
 def test_index_page_served(client):
     resp = client.get("/")
     assert resp.headers["content-type"].startswith("text/html")
-    assert "Birth Registration Assistant" in resp.text
+    assert "Birth &amp; Death Registration Assistant" in resp.text
 
 
 def test_health(client):
