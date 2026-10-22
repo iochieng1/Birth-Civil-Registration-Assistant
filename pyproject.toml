@@ -1,0 +1,18 @@
+[project]
+name = "crs-assistant"
+version = "0.1.0"
+description = "Birth & civil registration assistant for Kenya: document checklists, deadline reminders, appointment booking and USSD access."
+requires-python = ">=3.11"
+dependencies = ["fastapi>=0.115", "uvicorn>=0.32"]
+
+[project.optional-dependencies]
+dev = ["httpx>=0.28", "pytest>=8.3"]
+
+[tool.setuptools.packages.find]
+include = ["crs_assistant*"]
+
+[tool.setuptools.package-data]
+crs_assistant = ["data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
