@@ -46,6 +46,26 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "Death outside Kenya",
         "sw": "Kifo nje ya Kenya",
     },
+    "category.id_not_yet": {
+        "en": "Not yet eligible for a national ID (eligible at 18)",
+        "sw": "Bado hajastahili kitambulisho cha taifa (anastahili akifika miaka 18)",
+    },
+    "category.id_first_time": {
+        "en": "First-time national ID application",
+        "sw": "Ombi la kwanza la kitambulisho cha taifa",
+    },
+    "category.id_birth_cert_first": {
+        "en": "Birth certificate needed before the national ID",
+        "sw": "Cheti cha kuzaliwa kinahitajika kabla ya kitambulisho cha taifa",
+    },
+    "category.id_replacement": {
+        "en": "Replacement of a lost or damaged national ID",
+        "sw": "Kubadilisha kitambulisho cha taifa kilichopotea au kuharibika",
+    },
+    "category.id_change": {
+        "en": "Change of details on a national ID",
+        "sw": "Kubadilisha maelezo kwenye kitambulisho cha taifa",
+    },
     # Steps
     "step.collect_notification": {
         "en": "Get the birth notification (B1) from the hospital before you leave",
@@ -135,6 +155,34 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "Register the death in the country where it happened and contact the nearest Kenyan embassy for guidance",
         "sw": "Sajili kifo katika nchi kilipotokea na uwasiliane na ubalozi wa Kenya ulio karibu kwa mwongozo",
     },
+    "step.id_prepare": {
+        "en": "Start gathering the documents now so you can apply soon after your 18th birthday",
+        "sw": "Anza kukusanya nyaraka sasa ili uombe mapema baada ya kutimiza miaka 18",
+    },
+    "step.id_get_birth_certificate": {
+        "en": "Get your birth certificate first: use the birth registration checklist (late registration, applying for yourself)",
+        "sw": "Pata cheti chako cha kuzaliwa kwanza: tumia orodha ya usajili wa kuzaliwa (usajili wa kuchelewa, kujiombea)",
+    },
+    "step.id_gather": {
+        "en": "Gather the originals and copies of the documents on this list",
+        "sw": "Kusanya nyaraka halisi na nakala zilizo kwenye orodha hii",
+    },
+    "step.id_visit_office": {
+        "en": "Apply in person at the Registration of Persons office in your sub-county or a Huduma Centre",
+        "sw": "Omba ana kwa ana katika ofisi ya Usajili wa Watu ya kaunti ndogo yako au Kituo cha Huduma",
+    },
+    "step.id_capture": {
+        "en": "Have your photo and fingerprints taken at the office",
+        "sw": "Pigwa picha na uchukuliwe alama za vidole ofisini",
+    },
+    "step.id_collect": {
+        "en": "Collect the ID where you applied when you get the SMS that it is ready",
+        "sw": "Chukua kitambulisho ulipoomba utakapopata SMS kuwa kiko tayari",
+    },
+    "step.report_lost_id": {
+        "en": "Report the lost ID at a police station and get a police abstract",
+        "sw": "Ripoti kitambulisho kilichopotea katika kituo cha polisi na upate abstract ya polisi",
+    },
     # Warnings
     "warn.deadline_soon": {
         "en": "Only {days} day(s) left to register on time (deadline {deadline}). Go this week.",
@@ -163,6 +211,18 @@ MESSAGES: dict[str, dict[str, str]] = {
     "warn.death_abroad": {
         "en": "Deaths outside Kenya are registered in the country where they happened.",
         "sw": "Vifo vilivyotokea nje ya Kenya husajiliwa katika nchi vilipotokea.",
+    },
+    "warn.id_not_yet": {
+        "en": "You can apply from {deadline}, in {days} day(s). Prepare the documents now.",
+        "sw": "Unaweza kuomba kuanzia {deadline}, baada ya siku {days}. Andaa nyaraka sasa.",
+    },
+    "warn.id_birth_certificate_first": {
+        "en": "The ID office asks for your birth certificate. Without one, register your birth first.",
+        "sw": "Ofisi ya vitambulisho huomba cheti chako cha kuzaliwa. Kama huna, sajili kuzaliwa kwako kwanza.",
+    },
+    "warn.id_vetting": {
+        "en": "Without a parent's ID you may be asked to appear before a local vetting committee. Bring a guardian or elder who knows you.",
+        "sw": "Bila kitambulisho cha mzazi unaweza kuitwa mbele ya kamati ya uhakiki ya eneo. Kuja na mlezi au mzee anayekujua.",
     },
     # Readiness
     "ready.yes": {
