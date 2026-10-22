@@ -12,6 +12,7 @@ from collections.abc import Callable
 from datetime import date, datetime, timedelta
 
 from . import appointments, checklist, reference
+from .death_rules import Circumstance, DeathCase, DeathPlace, DeathService, build_death_plan, death_registration_deadline
 from .i18n import t
 from .rules import Applicant, BirthPlace, Case, Service, build_plan, registration_deadline
 from .sms import SmsGateway
@@ -22,6 +23,11 @@ SERVICES = {"1": Service.REGISTER, "2": Service.REPLACEMENT, "3": Service.CORREC
 APPLICANTS = {"1": Applicant.PARENT, "2": Applicant.GUARDIAN, "3": Applicant.SELF}
 BIRTH_PLACES = {"1": BirthPlace.FACILITY, "2": BirthPlace.HOME, "3": BirthPlace.ABROAD}
 FATHER_OPTIONS = {"1": (True, True), "2": (False, True), "3": (False, False)}  # (married, include_father)
+DEATH_SERVICES = {"1": DeathService.REGISTER, "2": DeathService.REPLACEMENT}
+DEATH_PLACES = {"1": DeathPlace.FACILITY, "2": DeathPlace.HOME, "3": DeathPlace.ABROAD}
+CIRCUMSTANCES = {"1": Circumstance.NATURAL, "2": Circumstance.UNNATURAL}
+YES_NO = {"1": True, "2": False}
+DEADLINE_EVENTS = {"1": ("ussd.dob", registration_deadline), "2": ("ussd.dod", death_registration_deadline)}
 DAYS_OFFERED = 5
 SLOTS_OFFERED = 6
 
@@ -38,7 +44,7 @@ def end(text: str) -> str:
     return f"END {text}"
 
 
-def parse_dob(raw: str, today: date) -> date:
+def parse_date(raw: str, today: date) -> date:
     try:
         dob = datetime.strptime(raw, "%d%m%Y").date()
     except ValueError as exc:
@@ -90,16 +96,17 @@ class UssdSession:
             return con(t("ussd.main", lang))
         flows: dict[str, Callable[[list[str], str], str]] = {
             "1": self._checklist_flow,
-            "2": self._deadline_flow,
-            "3": self._booking_flow,
-            "4": self._lookup_flow,
+            "2": self._death_checklist_flow,
+            "3": self._deadline_flow,
+            "4": self._booking_flow,
+            "5": self._lookup_flow,
         }
         try:
             return _choice(flows, rest[0])(rest[1:], lang)
         except _Invalid:
             return end(t("ussd.invalid", lang))
 
-    # 1. Documents checklist
+    # 1. Birth documents checklist
     def _checklist_flow(self, inputs: list[str], lang: str) -> str:
         if not inputs:
             return con(t("ussd.service", lang))
@@ -116,7 +123,7 @@ class UssdSession:
         place = _choice(BIRTH_PLACES, inputs[2])
         if len(inputs) < 4:
             return con(t("ussd.dob", lang))
-        dob = parse_dob(inputs[3], self.today)
+        dob = parse_date(inputs[3], self.today)
         if applicant is Applicant.SELF:
             case = Case(service, dob, birth_place=place, applicant=applicant, today=self.today)
             return self._send_checklist(case, lang)
@@ -134,8 +141,37 @@ class UssdSession:
         )
         return self._send_checklist(case, lang)
 
+    # 2. Death documents checklist
+    def _death_checklist_flow(self, inputs: list[str], lang: str) -> str:
+        if not inputs:
+            return con(t("ussd.death_service", lang))
+        service = _choice(DEATH_SERVICES, inputs[0])
+        if service is DeathService.REPLACEMENT:
+            return self._send_plan(build_death_plan(DeathCase(service, self.today, today=self.today)), lang)
+        if len(inputs) < 2:
+            return con(t("ussd.death_place", lang))
+        place = _choice(DEATH_PLACES, inputs[1])
+        if place is DeathPlace.ABROAD:
+            case = DeathCase(service, self.today, place_of_death=place, today=self.today)
+            return self._send_plan(build_death_plan(case), lang)
+        if len(inputs) < 3:
+            return con(t("ussd.death_circumstance", lang))
+        circumstance = _choice(CIRCUMSTANCES, inputs[2])
+        if len(inputs) < 4:
+            return con(t("ussd.dod", lang))
+        dod = parse_date(inputs[3], self.today)
+        if len(inputs) < 5:
+            return con(t("ussd.deceased_id", lang))
+        had_id = _choice(YES_NO, inputs[4])
+        case = DeathCase(
+            service, dod, place_of_death=place, circumstance=circumstance, deceased_had_id=had_id, today=self.today
+        )
+        return self._send_plan(build_death_plan(case), lang)
+
     def _send_checklist(self, case: Case, lang: str) -> str:
-        plan = build_plan(case)
+        return self._send_plan(build_plan(case), lang)
+
+    def _send_plan(self, plan, lang: str) -> str:
         self.gateway.send(self.phone, checklist_sms(plan, lang))
         category = t(f"category.{plan.category.value}", lang)
         count = sum(1 for d in plan.documents if d.mandatory and not d.group) + (
@@ -143,17 +179,20 @@ class UssdSession:
         )
         return end(t("ussd.checklist_sent", lang, category=category, count=count))
 
-    # 2. Deadline check
+    # 3. Deadline check
     def _deadline_flow(self, inputs: list[str], lang: str) -> str:
         if not inputs:
-            return con(t("ussd.dob", lang))
-        deadline = registration_deadline(parse_dob(inputs[0], self.today))
+            return con(t("ussd.deadline_event", lang))
+        prompt, deadline_rule = _choice(DEADLINE_EVENTS, inputs[0])
+        if len(inputs) < 2:
+            return con(t(prompt, lang))
+        deadline = deadline_rule(parse_date(inputs[1], self.today))
         days = (deadline - self.today).days
         if days >= 0:
             return end(t("ussd.deadline_open", lang, deadline=deadline.isoformat(), days=days))
         return end(t("ussd.deadline_passed", lang, deadline=deadline.isoformat()))
 
-    # 3. Appointment booking
+    # 4. Appointment booking
     def _bookable_days(self) -> list[date]:
         days, current = [], self.today + timedelta(days=1)
         while len(days) < DAYS_OFFERED:
@@ -198,7 +237,7 @@ class UssdSession:
         )
         return end(t("ussd.booked", lang, reference=appt.reference, day=appt.day, slot=appt.slot))
 
-    # 4. Appointment lookup
+    # 5. Appointment lookup
     def _lookup_flow(self, inputs: list[str], lang: str) -> str:
         if not inputs:
             return con(t("ussd.reference", lang))

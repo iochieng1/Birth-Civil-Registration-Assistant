@@ -208,8 +208,8 @@ MESSAGES: dict[str, dict[str, str]] = {
     },
     # USSD screens (keep each under ~160 characters)
     "ussd.main": {
-        "en": "Birth Registration Assistant\n1. What documents do I need?\n2. Check registration deadline\n3. Book office appointment\n4. Check my appointment",
-        "sw": "Msaidizi wa Usajili wa Kuzaliwa\n1. Nahitaji nyaraka gani?\n2. Angalia muda wa mwisho\n3. Weka miadi ofisini\n4. Angalia miadi yangu",
+        "en": "Civil Registration Assistant\n1. Birth: documents needed\n2. Death: documents needed\n3. Check registration deadline\n4. Book office appointment\n5. Check my appointment",
+        "sw": "Msaidizi wa Usajili wa Raia\n1. Kuzaliwa: nyaraka zinazohitajika\n2. Kifo: nyaraka zinazohitajika\n3. Angalia muda wa mwisho\n4. Weka miadi ofisini\n5. Angalia miadi yangu",
     },
     "ussd.service": {
         "en": "Which service?\n1. Register a birth\n2. Replace lost certificate\n3. Correct certificate details",
@@ -231,6 +231,30 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "Father's details?\n1. Parents married\n2. Not married, father to be listed\n3. Father not to be listed",
         "sw": "Maelezo ya baba?\n1. Wazazi wameoana\n2. Hawajaoana, baba aandikwe\n3. Baba asiandikwe",
     },
+    "ussd.death_service": {
+        "en": "Our condolences. Which service?\n1. Register a death\n2. Replace lost death certificate",
+        "sw": "Pole sana. Huduma gani?\n1. Sajili kifo\n2. Badilisha cheti cha kifo kilichopotea",
+    },
+    "ussd.death_place": {
+        "en": "Where did the death happen?\n1. Hospital / clinic\n2. At home / in the community\n3. Outside Kenya",
+        "sw": "Kifo kilitokea wapi?\n1. Hospitali / kliniki\n2. Nyumbani / katika jamii\n3. Nje ya Kenya",
+    },
+    "ussd.death_circumstance": {
+        "en": "Cause of death?\n1. Illness / natural causes\n2. Accident, violence or unknown",
+        "sw": "Chanzo cha kifo?\n1. Ugonjwa / sababu za kawaida\n2. Ajali, vurugu au haijulikani",
+    },
+    "ussd.dod": {
+        "en": "Enter date of death as DDMMYYYY (e.g. 05032026)",
+        "sw": "Weka tarehe ya kifo kama DDMMYYYY (mf. 05032026)",
+    },
+    "ussd.deceased_id": {
+        "en": "Did the deceased have a national ID?\n1. Yes\n2. No",
+        "sw": "Marehemu alikuwa na kitambulisho cha taifa?\n1. Ndiyo\n2. Hapana",
+    },
+    "ussd.deadline_event": {
+        "en": "Deadline for:\n1. A birth\n2. A death",
+        "sw": "Muda wa mwisho wa:\n1. Kuzaliwa\n2. Kifo",
+    },
     "ussd.checklist_sent": {
         "en": "{category}. {count} document(s) needed. Full list sent by SMS.",
         "sw": "{category}. Nyaraka {count} zinahitajika. Orodha kamili imetumwa kwa SMS.",
@@ -240,8 +264,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "sw": "Sajili kabla ya {deadline}: zimebaki siku {days}.",
     },
     "ussd.deadline_passed": {
-        "en": "The deadline was {deadline}. You need late registration. Choose option 1 for the document list.",
-        "sw": "Mwisho ulikuwa {deadline}. Unahitaji usajili wa kuchelewa. Chagua 1 kupata orodha ya nyaraka.",
+        "en": "The deadline was {deadline}. You need late registration. Use the documents option in the main menu for the list.",
+        "sw": "Mwisho ulikuwa {deadline}. Unahitaji usajili wa kuchelewa. Tumia chaguo la nyaraka kwenye menyu kuu kupata orodha.",
     },
     "ussd.county": {
         "en": "Enter your county number (1-47, e.g. 47 for Nairobi)",
