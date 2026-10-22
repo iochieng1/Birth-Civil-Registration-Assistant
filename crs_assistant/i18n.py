@@ -280,8 +280,8 @@ MESSAGES: dict[str, dict[str, str]] = {
     },
     # USSD screens (keep each under ~160 characters)
     "ussd.main": {
-        "en": "Civil Registration Assistant\n1. Birth: documents needed\n2. Death: documents needed\n3. Check registration deadline\n4. Book office appointment\n5. Check my appointment",
-        "sw": "Msaidizi wa Usajili wa Raia\n1. Kuzaliwa: nyaraka zinazohitajika\n2. Kifo: nyaraka zinazohitajika\n3. Angalia muda wa mwisho\n4. Weka miadi ofisini\n5. Angalia miadi yangu",
+        "en": "Civil Registration Assistant\n1. Birth: documents\n2. Death: documents\n3. National ID: documents\n4. Check deadlines\n5. Book office appointment\n6. Check my appointment",
+        "sw": "Msaidizi wa Usajili wa Raia\n1. Kuzaliwa: nyaraka\n2. Kifo: nyaraka\n3. Kitambulisho: nyaraka\n4. Angalia muda wa mwisho\n5. Weka miadi ofisini\n6. Angalia miadi yangu",
     },
     "ussd.service": {
         "en": "Which service?\n1. Register a birth\n2. Replace lost certificate\n3. Correct certificate details",
@@ -324,8 +324,36 @@ MESSAGES: dict[str, dict[str, str]] = {
         "sw": "Marehemu alikuwa na kitambulisho cha taifa?\n1. Ndiyo\n2. Hapana",
     },
     "ussd.deadline_event": {
-        "en": "Deadline for:\n1. A birth\n2. A death",
-        "sw": "Muda wa mwisho wa:\n1. Kuzaliwa\n2. Kifo",
+        "en": "Deadline for:\n1. A birth\n2. A death\n3. Turning 18 (national ID)",
+        "sw": "Muda wa mwisho wa:\n1. Kuzaliwa\n2. Kifo\n3. Kutimiza miaka 18 (kitambulisho)",
+    },
+    "ussd.id_service": {
+        "en": "National ID:\n1. First ID\n2. Replace lost ID\n3. Change details on ID",
+        "sw": "Kitambulisho cha taifa:\n1. Kitambulisho cha kwanza\n2. Badilisha kilichopotea\n3. Badilisha maelezo",
+    },
+    "ussd.id_has_birth_cert": {
+        "en": "Do you have your own birth certificate?\n1. Yes\n2. No",
+        "sw": "Una cheti chako cha kuzaliwa?\n1. Ndiyo\n2. Hapana",
+    },
+    "ussd.id_parents": {
+        "en": "Which parents have national IDs?\n1. Both\n2. Only mother\n3. Only father\n4. Neither",
+        "sw": "Wazazi gani wana vitambulisho?\n1. Wote wawili\n2. Mama pekee\n3. Baba pekee\n4. Hakuna",
+    },
+    "ussd.id_change_reason": {
+        "en": "What is changing?\n1. Name after marriage\n2. Name change (deed poll)\n3. Correct an error",
+        "sw": "Nini kinabadilika?\n1. Jina baada ya ndoa\n2. Kubadilisha jina (deed poll)\n3. Kusahihisha kosa",
+    },
+    "ussd.id_birth_cert_first": {
+        "en": "You need a birth certificate first. Dial again and choose 1 (Birth) > 1 > 3 (Myself). Details sent by SMS.",
+        "sw": "Unahitaji cheti cha kuzaliwa kwanza. Piga tena uchague 1 (Kuzaliwa) > 1 > 3 (Mimi). Maelezo yametumwa kwa SMS.",
+    },
+    "ussd.id_eligible_from": {
+        "en": "You can apply for a national ID from {deadline}: {days} day(s) to go.",
+        "sw": "Unaweza kuomba kitambulisho kuanzia {deadline}: zimebaki siku {days}.",
+    },
+    "ussd.id_eligible_since": {
+        "en": "You have been eligible since {deadline}. Apply now: choose 3 in the main menu for the documents.",
+        "sw": "Umestahili tangu {deadline}. Omba sasa: chagua 3 kwenye menyu kuu kupata nyaraka.",
     },
     "ussd.checklist_sent": {
         "en": "{category}. {count} document(s) needed. Full list sent by SMS.",

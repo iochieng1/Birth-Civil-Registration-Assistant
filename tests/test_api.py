@@ -138,7 +138,7 @@ def test_ussd_callback(client):
     assert resp.headers["content-type"].startswith("text/plain")
     assert resp.text.startswith("CON 1. English")
 
-    form["text"] = "1*3*1*01092026"
+    form["text"] = "1*4*1*01092026"
     assert client.post("/ussd", data=form).text.startswith("END Register by 2027-03-01")
 
     form["phoneNumber"] = "bad"

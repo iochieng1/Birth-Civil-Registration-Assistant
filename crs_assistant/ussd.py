@@ -14,6 +14,7 @@ from datetime import date, datetime, timedelta
 from . import appointments, checklist, reference
 from .death_rules import Circumstance, DeathCase, DeathPlace, DeathService, build_death_plan, death_registration_deadline
 from .i18n import t
+from .id_rules import ChangeReason, IdCase, IdService, ParentStatus, build_id_plan, id_eligibility_date
 from .rules import Applicant, BirthPlace, Case, Service, build_plan, registration_deadline
 from .sms import SmsGateway
 
@@ -27,7 +28,16 @@ DEATH_SERVICES = {"1": DeathService.REGISTER, "2": DeathService.REPLACEMENT}
 DEATH_PLACES = {"1": DeathPlace.FACILITY, "2": DeathPlace.HOME, "3": DeathPlace.ABROAD}
 CIRCUMSTANCES = {"1": Circumstance.NATURAL, "2": Circumstance.UNNATURAL}
 YES_NO = {"1": True, "2": False}
-DEADLINE_EVENTS = {"1": ("ussd.dob", registration_deadline), "2": ("ussd.dod", death_registration_deadline)}
+ID_SERVICES = {"1": IdService.FIRST_TIME, "2": IdService.REPLACEMENT, "3": IdService.CHANGE}
+_HAS, _NONE = ParentStatus.HAS_ID, ParentStatus.UNKNOWN
+ID_PARENTS = {"1": (_HAS, _HAS), "2": (_HAS, _NONE), "3": (_NONE, _HAS), "4": (_NONE, _NONE)}  # (mother, father)
+CHANGE_REASONS = {"1": ChangeReason.MARRIAGE, "2": ChangeReason.NAME_CHANGE, "3": ChangeReason.ERROR}
+# option -> (date prompt, rule, message while open, message once passed)
+DEADLINE_EVENTS = {
+    "1": ("ussd.dob", registration_deadline, "ussd.deadline_open", "ussd.deadline_passed"),
+    "2": ("ussd.dod", death_registration_deadline, "ussd.deadline_open", "ussd.deadline_passed"),
+    "3": ("ussd.dob", id_eligibility_date, "ussd.id_eligible_from", "ussd.id_eligible_since"),
+}
 DAYS_OFFERED = 5
 SLOTS_OFFERED = 6
 
@@ -97,9 +107,10 @@ class UssdSession:
         flows: dict[str, Callable[[list[str], str], str]] = {
             "1": self._checklist_flow,
             "2": self._death_checklist_flow,
-            "3": self._deadline_flow,
-            "4": self._booking_flow,
-            "5": self._lookup_flow,
+            "3": self._id_checklist_flow,
+            "4": self._deadline_flow,
+            "5": self._booking_flow,
+            "6": self._lookup_flow,
         }
         try:
             return _choice(flows, rest[0])(rest[1:], lang)
@@ -168,6 +179,37 @@ class UssdSession:
         )
         return self._send_plan(build_death_plan(case), lang)
 
+    # 3. National ID checklist
+    def _id_checklist_flow(self, inputs: list[str], lang: str) -> str:
+        if not inputs:
+            return con(t("ussd.id_service", lang))
+        service = _choice(ID_SERVICES, inputs[0])
+        if service is IdService.REPLACEMENT:
+            return self._send_plan(build_id_plan(IdCase(service, self.today, today=self.today)), lang)
+        if service is IdService.CHANGE:
+            if len(inputs) < 2:
+                return con(t("ussd.id_change_reason", lang))
+            reason = _choice(CHANGE_REASONS, inputs[1])
+            case = IdCase(service, self.today, change_reason=reason, today=self.today)
+            return self._send_plan(build_id_plan(case), lang)
+
+        if len(inputs) < 2:
+            return con(t("ussd.dob", lang))
+        dob = parse_date(inputs[1], self.today)
+        if id_eligibility_date(dob) > self.today:
+            return self._send_plan(build_id_plan(IdCase(service, dob, today=self.today)), lang)
+        if len(inputs) < 3:
+            return con(t("ussd.id_has_birth_cert", lang))
+        has_cert = _choice(YES_NO, inputs[2])
+        if not has_cert:
+            plan = build_id_plan(IdCase(service, dob, has_birth_certificate=False, today=self.today))
+            self.gateway.send(self.phone, checklist_sms(plan, lang))
+            return end(t("ussd.id_birth_cert_first", lang))
+        if len(inputs) < 4:
+            return con(t("ussd.id_parents", lang))
+        mother, father = _choice(ID_PARENTS, inputs[3])
+        return self._send_plan(build_id_plan(IdCase(service, dob, mother=mother, father=father, today=self.today)), lang)
+
     def _send_checklist(self, case: Case, lang: str) -> str:
         return self._send_plan(build_plan(case), lang)
 
@@ -179,20 +221,20 @@ class UssdSession:
         )
         return end(t("ussd.checklist_sent", lang, category=category, count=count))
 
-    # 3. Deadline check
+    # 4. Deadline check
     def _deadline_flow(self, inputs: list[str], lang: str) -> str:
         if not inputs:
             return con(t("ussd.deadline_event", lang))
-        prompt, deadline_rule = _choice(DEADLINE_EVENTS, inputs[0])
+        prompt, deadline_rule, open_key, passed_key = _choice(DEADLINE_EVENTS, inputs[0])
         if len(inputs) < 2:
             return con(t(prompt, lang))
         deadline = deadline_rule(parse_date(inputs[1], self.today))
         days = (deadline - self.today).days
         if days >= 0:
-            return end(t("ussd.deadline_open", lang, deadline=deadline.isoformat(), days=days))
-        return end(t("ussd.deadline_passed", lang, deadline=deadline.isoformat()))
+            return end(t(open_key, lang, deadline=deadline.isoformat(), days=days))
+        return end(t(passed_key, lang, deadline=deadline.isoformat()))
 
-    # 4. Appointment booking
+    # 5. Appointment booking
     def _bookable_days(self) -> list[date]:
         days, current = [], self.today + timedelta(days=1)
         while len(days) < DAYS_OFFERED:
@@ -237,7 +279,7 @@ class UssdSession:
         )
         return end(t("ussd.booked", lang, reference=appt.reference, day=appt.day, slot=appt.slot))
 
-    # 5. Appointment lookup
+    # 6. Appointment lookup
     def _lookup_flow(self, inputs: list[str], lang: str) -> str:
         if not inputs:
             return con(t("ussd.reference", lang))
