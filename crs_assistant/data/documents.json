@@ -1,0 +1,78 @@
+{
+  "_meta": {
+    "note": "Requirements summarised from public Civil Registration Services guidance. Offices may ask for additional evidence; always confirm with your local registrar. Review this file whenever CRS publishes new guidance.",
+    "last_reviewed": "2026-10-22"
+  },
+  "birth_notification": {
+    "en": "Birth notification (form B1 / acknowledgement slip) from the health facility where the child was born",
+    "sw": "Taarifa ya kuzaliwa (fomu B1 / risiti) kutoka kituo cha afya mtoto alipozaliwa"
+  },
+  "chief_letter": {
+    "en": "Letter from the Assistant Chief / Chief confirming the home birth",
+    "sw": "Barua kutoka kwa Chifu Msaidizi / Chifu inayothibitisha kuzaliwa nyumbani"
+  },
+  "mother_id": {
+    "en": "Mother's national ID card or passport (original and copy)",
+    "sw": "Kitambulisho cha taifa au pasipoti ya mama (asili na nakala)"
+  },
+  "father_id": {
+    "en": "Father's national ID card or passport (original and copy)",
+    "sw": "Kitambulisho cha taifa au pasipoti ya baba (asili na nakala)"
+  },
+  "marriage_certificate": {
+    "en": "Parents' marriage certificate (if available)",
+    "sw": "Cheti cha ndoa cha wazazi (kama kipo)"
+  },
+  "joint_parent_consent": {
+    "en": "Joint request by both parents to enter the father's details (both attend, or a signed declaration)",
+    "sw": "Ombi la pamoja la wazazi wote wawili kuandika maelezo ya baba (wote wahudhurie, au tamko lililotiwa sahihi)"
+  },
+  "clinic_card": {
+    "en": "Child's clinic / immunisation card (Mother and Child Health booklet)",
+    "sw": "Kadi ya kliniki / chanjo ya mtoto (kitabu cha Afya ya Mama na Mtoto)"
+  },
+  "school_record": {
+    "en": "School admission record or leaving certificate showing date of birth",
+    "sw": "Rekodi ya kujiunga na shule au cheti cha kumaliza shule kinachoonyesha tarehe ya kuzaliwa"
+  },
+  "baptism_card": {
+    "en": "Baptism / dedication card or other religious record (if available)",
+    "sw": "Kadi ya ubatizo / kuwekwa wakfu au rekodi nyingine ya kidini (kama ipo)"
+  },
+  "age_assessment": {
+    "en": "Age assessment report from a government medical officer (if no early-life records exist)",
+    "sw": "Ripoti ya makadirio ya umri kutoka kwa daktari wa serikali (kama hakuna rekodi za utotoni)"
+  },
+  "late_registration_form": {
+    "en": "Completed late registration application form (available at the registrar's office)",
+    "sw": "Fomu ya maombi ya usajili wa kuchelewa iliyojazwa (inapatikana ofisi ya msajili)"
+  },
+  "applicant_id": {
+    "en": "Your own national ID card (for adults applying for themselves)",
+    "sw": "Kitambulisho chako cha taifa (kwa watu wazima wanaojiombea)"
+  },
+  "guardian_proof": {
+    "en": "Proof of guardianship (court order, letter from children's officer or chief)",
+    "sw": "Uthibitisho wa ulezi (amri ya mahakama, barua ya afisa wa watoto au chifu)"
+  },
+  "police_abstract": {
+    "en": "Police abstract reporting the loss of the original certificate",
+    "sw": "Ripoti ya polisi (abstract) kuhusu kupotea kwa cheti cha awali"
+  },
+  "certificate_copy": {
+    "en": "Copy of the lost certificate or its entry number (if known)",
+    "sw": "Nakala ya cheti kilichopotea au nambari yake ya usajili (kama inajulikana)"
+  },
+  "original_certificate": {
+    "en": "The original birth certificate that needs correcting",
+    "sw": "Cheti halisi cha kuzaliwa kinachohitaji kusahihishwa"
+  },
+  "correction_evidence": {
+    "en": "Evidence supporting the correct details (e.g. ID, school records, clinic card)",
+    "sw": "Ushahidi unaothibitisha maelezo sahihi (k.m. kitambulisho, rekodi za shule, kadi ya kliniki)"
+  },
+  "ecitizen_payment": {
+    "en": "eCitizen payment confirmation for the certificate fee (check current fee on eCitizen)",
+    "sw": "Uthibitisho wa malipo ya eCitizen kwa ada ya cheti (angalia ada ya sasa kwenye eCitizen)"
+  }
+}
