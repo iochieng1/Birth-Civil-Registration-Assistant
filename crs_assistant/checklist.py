@@ -19,7 +19,6 @@ class ChecklistItem:
     label: str
     mandatory: bool
     group: str | None
-    have: bool | None = None
 
 
 @dataclass
