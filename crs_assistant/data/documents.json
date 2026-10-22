@@ -74,5 +74,45 @@
   "ecitizen_payment": {
     "en": "eCitizen payment confirmation for the certificate fee (check current fee on eCitizen)",
     "sw": "Uthibitisho wa malipo ya eCitizen kwa ada ya cheti (angalia ada ya sasa kwenye eCitizen)"
+  },
+  "death_notification": {
+    "en": "Notification of death (form D1) from the health facility where the death occurred",
+    "sw": "Taarifa ya kifo (fomu D1) kutoka kituo cha afya ambapo kifo kilitokea"
+  },
+  "death_chief_letter": {
+    "en": "Letter from the Assistant Chief / Chief confirming the death",
+    "sw": "Barua kutoka kwa Chifu Msaidizi / Chifu inayothibitisha kifo"
+  },
+  "deceased_id": {
+    "en": "Deceased person's national ID card or passport",
+    "sw": "Kitambulisho cha taifa au pasipoti ya marehemu"
+  },
+  "deceased_birth_certificate": {
+    "en": "Deceased person's birth certificate (if available)",
+    "sw": "Cheti cha kuzaliwa cha marehemu (kama kipo)"
+  },
+  "informant_id": {
+    "en": "National ID card of the relative reporting the death (the informant)",
+    "sw": "Kitambulisho cha taifa cha jamaa anayeripoti kifo (mtoa taarifa)"
+  },
+  "police_death_report": {
+    "en": "Police abstract / report for a death from accident, violence or unknown cause",
+    "sw": "Ripoti ya polisi (abstract) kwa kifo kilichotokana na ajali, vurugu au sababu isiyojulikana"
+  },
+  "postmortem_report": {
+    "en": "Post-mortem report (if a post-mortem was done)",
+    "sw": "Ripoti ya uchunguzi wa maiti (kama ulifanyika)"
+  },
+  "burial_permit": {
+    "en": "Burial permit (if the deceased has already been buried)",
+    "sw": "Kibali cha mazishi (kama marehemu ameshazikwa)"
+  },
+  "death_affidavit": {
+    "en": "Sworn affidavit by a relative confirming the death, its date and place",
+    "sw": "Kiapo cha jamaa kinachothibitisha kifo, tarehe na mahali kilipotokea"
+  },
+  "death_certificate_copy": {
+    "en": "Copy of the lost death certificate or its entry number (if known)",
+    "sw": "Nakala ya cheti cha kifo kilichopotea au nambari yake ya usajili (kama inajulikana)"
   }
 }
