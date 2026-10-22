@@ -113,6 +113,23 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "one proof of date of birth",
         "sw": "uthibitisho mmoja wa tarehe ya kuzaliwa",
     },
+    # SMS
+    "sms.notification_received": {
+        "en": "Birth recorded (ref {reference}). Register your child by {deadline} at the Civil Registration office. Dial the CRS USSD code for the document list.",
+        "sw": "Kuzaliwa kumerekodiwa (kumb. {reference}). Sajili mtoto wako kabla ya {deadline} katika ofisi ya Usajili wa Raia. Piga msimbo wa USSD wa CRS kupata orodha ya nyaraka.",
+    },
+    "sms.reminder": {
+        "en": "Reminder: {days} day(s) left to register your child's birth (ref {reference}, deadline {deadline}). Registration on time avoids extra paperwork.",
+        "sw": "Kumbusho: zimebaki siku {days} kusajili kuzaliwa kwa mtoto wako (kumb. {reference}, mwisho {deadline}). Kusajili kwa wakati huepusha nyaraka za ziada.",
+    },
+    "sms.overdue": {
+        "en": "The registration deadline for ref {reference} passed on {deadline}. You can still register through late registration; dial the CRS USSD code to see what to bring.",
+        "sw": "Muda wa kusajili kwa kumb. {reference} uliisha {deadline}. Bado unaweza kusajili kupitia usajili wa kuchelewa; piga msimbo wa USSD wa CRS kuona cha kubeba.",
+    },
+    "sms.appointment_booked": {
+        "en": "Appointment {reference}: {office}, {day} at {slot}. Bring the documents on your checklist.",
+        "sw": "Miadi {reference}: {office}, {day} saa {slot}. Beba nyaraka zilizo kwenye orodha yako.",
+    },
     "disclaimer": {
         "en": "Guidance only. Requirements can vary by office; confirm with your local registrar.",
         "sw": "Huu ni mwongozo tu. Mahitaji yanaweza kutofautiana kwa ofisi; thibitisha na msajili wa eneo lako.",
