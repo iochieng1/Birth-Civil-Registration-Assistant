@@ -55,6 +55,11 @@ class Category(StrEnum):
     DEATH_LATE = "death_late"
     DEATH_REPLACEMENT = "death_replacement"
     DEATH_ABROAD = "death_abroad"
+    ID_NOT_YET = "id_not_yet"
+    ID_FIRST_TIME = "id_first_time"
+    ID_BIRTH_CERT_FIRST = "id_birth_cert_first"
+    ID_REPLACEMENT = "id_replacement"
+    ID_CHANGE = "id_change"
 
 
 @dataclass(frozen=True)
